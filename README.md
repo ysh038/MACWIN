@@ -1,68 +1,72 @@
-<img src="Resources/windows98-96.png" width="64" alt="MACWIN 아이콘">
+<img src="Resources/windows98-96.png" width="64" alt="MACWIN icon">
 
 # MACWIN
 
-맥에서 만든 파일을 **윈도우로 보내거나 웹(사내 그룹웨어 등)에 올리기 전에** 파일명을 검토하고 고쳐주는 메뉴바 앱입니다.
+**English** | [한국어](README.ko.md)
 
-맥에서 이름을 지은 한글 파일은 윈도우에서 `ㅎㅏㄴㄱㅡㄹ` 처럼 자소가 분리되어 보이거나, 검색이 안 되거나, 아예 복사가 안 되는 경우가 많습니다. 보내기 전에 메뉴바 아이콘에 한 번 올려두면 문제가 되는 이름을 찾아서 고쳐줍니다.
+A macOS menu bar app that checks and fixes file names **before you send files to Windows or upload them to the web** (company groupware, etc.).
 
-세 가지 방법으로 쓸 수 있습니다.
+Korean file names created on a Mac often show up on Windows with their syllables broken apart (`한글` → `ㅎㅏㄴㄱㅡㄹ`), can't be found by search, or fail to copy at all. Drop your files on the menu bar icon before sending them, and MACWIN finds the problematic names and fixes them.
 
-- **고치기**: 원본 파일의 이름을 바로 고칩니다. (되돌리기 가능)
-- **윈도우용 ZIP으로 압축**: 원본은 그대로 두고, 윈도우에서 안 깨지는 이름으로 ZIP을 새로 만듭니다.
-- **이미 만든 ZIP 고치기**: 맥에서 압축해 둔 ZIP을 올리면, 안쪽 이름만 고친 `(윈도우용)` ZIP을 옆에 만듭니다.
+There are three ways to use it:
 
-맥 기본 압축(Finder의 "압축")으로 만든 ZIP은 이름에 "UTF-8" 표시가 없어서, 윈도우가 이름을 CP949로 잘못 읽어 깨집니다. `__MACOSX` 폴더도 딸려 갑니다. 위의 두 ZIP 기능은 이 문제가 없습니다.
+- **Fix**: rename the original files in place (can be undone).
+- **Compress to a Windows ZIP**: leave the originals alone and create a new ZIP with Windows-safe names.
+- **Fix an existing ZIP**: drop a ZIP you already made on a Mac, and MACWIN writes a `(윈도우용)` ("for Windows") copy next to it with the names inside fixed.
 
-- macOS 13 (Ventura) 이상, Apple Silicon·인텔 맥 모두 지원
+ZIPs made with the Mac's built-in compression (Finder's "Compress") don't mark their names as UTF-8, so Windows misreads them as CP949 and the names come out garbled. They also carry a `__MACOSX` folder along. Both ZIP features above avoid these problems.
 
-## 무엇을 검사하나요
+- macOS 13 (Ventura) or later, on both Apple Silicon and Intel Macs
 
-| 항목 | 설명 | 처리 |
+> The app's interface is in Korean. Button and menu names in this document are given in English with the Korean label in parentheses, e.g. **Fix** (`고치기`).
+
+## What it checks
+
+| Check | Description | Action |
 |---|---|---|
-| 자소분리 | 맥식(NFD) 한글을 윈도우식(NFC)으로 바꿉니다. 보이는 이름은 그대로예요. | 고침 |
-| 특수 공백 | 좁은 공백(U+202F), 제로폭 문자 등을 일반 공백으로 바꾸거나 지웁니다. | 고침 |
-| 제어 문자 | 보이지 않는 제어 문자를 `_` 로 바꿉니다. | 고침 |
-| 금지 문자 | 윈도우에서 못 쓰는 `\ : * ? " < > \|` 를 `_` 로 바꿉니다. | 고침 |
-| 끝 공백/점 | `메모. ` 처럼 이름 끝의 공백·마침표를 지웁니다. | 고침 |
-| 예약어 | `CON`, `NUL`, `COM1` 같은 이름 뒤에 `_` 를 붙입니다. | 고침 |
-| 이름 충돌 | 고친 이름이 같은 폴더의 다른 파일과 겹치면 바꾸지 않고 알려줍니다. | 경고만 |
-| 대소문자 충돌 | `File.txt` / `file.txt` 처럼 대소문자만 다른 이름이 있으면 알려줍니다. | 경고만 |
-| 긴 경로 | 윈도우 260자 경로 제한에 걸릴 수 있으면 알려줍니다. | 경고만 |
+| Decomposed Hangul (NFD) | Converts Mac-style (NFD) Korean to Windows-style (NFC). The name looks the same. | Fixed |
+| Special spaces | Replaces narrow no-break spaces (U+202F) and similar with a normal space, and removes zero-width characters. | Fixed |
+| Control characters | Replaces invisible control characters with `_`. | Fixed |
+| Forbidden characters | Replaces `\ : * ? " < > \|`, which Windows doesn't allow, with `_`. | Fixed |
+| Trailing space/dot | Removes spaces and dots at the end of a name, like `memo. `. | Fixed |
+| Reserved names | Appends `_` to names such as `CON`, `NUL` and `COM1`. | Fixed |
+| Name conflict | If a fixed name would clash with another file in the same folder, it's left unchanged and reported. | Warning only |
+| Case conflict | Reports names that differ only in case, like `File.txt` / `file.txt`. | Warning only |
+| Long path | Reports paths that may hit Windows' 260-character path limit. | Warning only |
 
-건드리지 않는 것:
+What it leaves alone:
 
-- `.DS_Store`, `._*`, `__MACOSX` 같은 맥 숨김파일 (개수만 알려줌)
-- `.git`, `.svn` 폴더 안쪽, `.app`·Pages·Keynote 같은 번들 안쪽
-- 파일 **내용** (이름만 바꿉니다)
+- Mac hidden files such as `.DS_Store`, `._*` and `__MACOSX` (only counted)
+- The inside of `.git` and `.svn` folders, and of bundles such as `.app`, Pages and Keynote files
+- File **contents** (only names are changed)
 
-## 설치
+## Installation
 
-### 방법 1: 내려받기
+### Option 1: Download
 
-[Releases](https://github.com/ysh038/MACWIN/releases/latest)에 두 가지 형식이 있습니다. 내용은 같으니 편한 쪽을 받으세요.
+[Releases](https://github.com/ysh038/MACWIN/releases/latest) has two formats. They contain the same app, so pick whichever you like.
 
-| 파일 | 설치 방법 |
+| File | How to install |
 |---|---|
-| [MACWIN.dmg](https://github.com/ysh038/MACWIN/releases/latest/download/MACWIN.dmg) | 열면 나오는 창에서 `MACWIN` 을 `Applications` 폴더로 끌어다 놓기 |
-| [MACWIN.zip](https://github.com/ysh038/MACWIN/releases/latest/download/MACWIN.zip) | 압축을 풀고 `MACWIN.app` 을 `응용 프로그램(Applications)` 폴더로 옮기기 |
+| [MACWIN.dmg](https://github.com/ysh038/MACWIN/releases/latest/download/MACWIN.dmg) | Open it and drag `MACWIN` onto the `Applications` folder in the window |
+| [MACWIN.zip](https://github.com/ysh038/MACWIN/releases/latest/download/MACWIN.zip) | Unzip it and move `MACWIN.app` to your `Applications` folder |
 
-설치한 다음:
+After installing:
 
-1. 응용 프로그램 폴더에서 `MACWIN` 을 실행합니다.
-2. 처음 실행할 때 "Apple은 이 앱이 악성 코드가 없음을 확인할 수 없습니다" 경고가 뜹니다. Apple 개발자 서명·공증을 받지 않은 앱이라 그렇고, 처음 한 번만 허용하면 됩니다.
-   1. 경고 창에서 **완료**를 누릅니다.
-   2. **시스템 설정 → 개인정보 보호 및 보안**으로 가서 아래쪽의 **그래도 열기**를 누르고 암호(또는 Touch ID)를 입력합니다.
-      - macOS 14 이하라면 `MACWIN.app` 을 **우클릭 → 열기 → 열기**로도 됩니다.
-   3. 또는 터미널에서 아래를 한 번 실행해도 됩니다. "손상되었기 때문에 열 수 없습니다"가 뜰 때도 이 방법을 쓰세요.
+1. Launch `MACWIN` from the Applications folder.
+2. On first launch you'll see a warning that Apple cannot verify the app is free of malware. This is because the app isn't signed and notarized with an Apple Developer ID. You only need to allow it once.
+   1. Click **Done** in the warning dialog.
+   2. Go to **System Settings → Privacy & Security**, click **Open Anyway** near the bottom, and enter your password (or use Touch ID).
+      - On macOS 14 or earlier, you can also **right-click `MACWIN.app` → Open → Open**.
+   3. Alternatively, run this once in Terminal. Use this as well if you see "is damaged and can't be opened".
 
       ```bash
       xattr -dr com.apple.quarantine /Applications/MACWIN.app
       ```
 
-### 방법 2: 직접 빌드
+### Option 2: Build from source
 
-Xcode 또는 Command Line Tools(`xcode-select --install`)가 필요합니다.
+Requires Xcode or the Command Line Tools (`xcode-select --install`).
 
 ```bash
 git clone https://github.com/ysh038/MACWIN.git
@@ -70,101 +74,101 @@ cd MACWIN
 ./build.sh
 ```
 
-`build/MACWIN.app` 이 만들어집니다. 응용 프로그램 폴더로 옮겨서 실행하세요.
+This creates `build/MACWIN.app`. Move it to the Applications folder and launch it.
 
-배포용 파일(`dist/MACWIN.zip`, `dist/MACWIN.dmg`)은 `./release.sh` 로 만듭니다.
+Release files (`dist/MACWIN.zip`, `dist/MACWIN.dmg`) are built with `./release.sh`.
 
-### 로그인할 때 자동 실행
+### Launch at login
 
-**시스템 설정 → 일반 → 로그인 항목**에서 `+` 를 눌러 `MACWIN.app` 을 추가하세요.
+In **System Settings → General → Login Items**, click `+` and add `MACWIN.app`.
 
-## 사용법
+## Usage
 
-실행하면 Dock에는 안 보이고 메뉴바에 옛날 윈도우 로고 아이콘이 생깁니다.
+Once running, MACWIN doesn't appear in the Dock. Instead, a classic Windows logo icon appears in the menu bar.
 
-1. **검사할 폴더/파일 올리기** — 셋 중 편한 방법으로
-   - Finder에서 끌어다 메뉴바 아이콘 위에 놓기
-   - 메뉴바 아이콘을 눌러 창을 열고, 창에 끌어다 놓기
-   - 창에서 **선택…** 버튼으로 고르기
-   - **ZIP 파일 하나**를 올리면 ZIP 안의 이름을 검사합니다. [이미 만든 ZIP 고치기](#이미-만든-zip-고치기)를 보세요.
-2. **결과 확인**
-   - **고칠 것**: 체크된 항목만 고칩니다. 원하지 않는 항목은 체크를 풀어주세요. 이름이 바뀌는 경우 `원래:` 로 원래 이름을 보여줍니다.
-   - **직접 확인할 것**: 자동으로 고치지 않는 항목입니다. 필요하면 직접 이름을 바꿔주세요.
-   - 문제가 없으면 "깨끗해요"가 뜹니다.
-3. 둘 중 하나를 고릅니다.
-   - **고치기** (또는 Enter): 원본 파일의 이름을 바꿉니다. 끝나면 **다시 검사**로 남은 문제가 없는지 확인할 수 있습니다.
-   - **윈도우용 ZIP**: 원본은 그대로 두고 ZIP을 새로 만듭니다. 아래 [윈도우용 ZIP](#윈도우용-zip)을 보세요.
+1. **Drop the folders or files to check** — whichever is easiest:
+   - Drag them from Finder onto the menu bar icon
+   - Click the menu bar icon to open the window, then drag them into it
+   - Use the **Choose…** (`선택…`) button in the window
+   - Drop **a single ZIP file** to check the names inside it. See [Fixing an existing ZIP](#fixing-an-existing-zip).
+2. **Review the results**
+   - **To fix** (`고칠 것`): only checked items are fixed. Uncheck anything you want to leave as is. When a name will change, the original is shown after `원래:` ("original").
+   - **Check yourself** (`직접 확인할 것`): items that aren't fixed automatically. Rename them yourself if needed.
+   - If nothing is wrong, you'll see "all clean" (`깨끗해요`).
+3. Choose one:
+   - **Fix** (`고치기`, or Enter): renames the original files. Afterwards, **Check again** (`다시 검사`) confirms nothing is left.
+   - **Windows ZIP** (`윈도우용 ZIP`): leaves the originals alone and creates a new ZIP. See [Windows ZIP](#windows-zip) below.
 
-창은 바깥을 클릭하거나 Esc를 누르면 닫힙니다. 파일을 끌어오는 중에는 닫히지 않습니다.
+The window closes when you click outside it or press Esc. It stays open while you're dragging files in.
 
-### 윈도우용 ZIP
+### Windows ZIP
 
-검사 결과 화면(또는 고치기 완료 화면)에서 **윈도우용 ZIP**을 누르면 원본 옆에 `폴더이름.zip` 이 만들어집니다. 여러 개를 올렸다면 `보관.zip` 이고, 같은 이름이 있으면 `보관 2.zip` 처럼 번호가 붙습니다.
+Click **Windows ZIP** (`윈도우용 ZIP`) on the results screen (or the screen after fixing) to create `FolderName.zip` next to the originals. If you dropped several items it's named `보관.zip` ("Archive.zip"), and a number is added if the name is taken, like `보관 2.zip`.
 
-- ZIP 안의 이름은 위 표의 규칙대로 고쳐서 넣습니다. 원본 파일은 건드리지 않습니다.
-- 고친 이름이 서로 겹치면 `이름 (2).txt` 처럼 번호를 붙입니다.
-- `.DS_Store`, `._*`, `__MACOSX` 같은 맥 숨김파일과 심볼릭 링크는 빼고 넣습니다.
-- 이미 압축된 형식(jpg, mp4, docx, pdf 등)은 다시 압축하지 않아 빠릅니다.
+- Names inside the ZIP are fixed using the rules in the table above. The original files are not touched.
+- If fixed names collide, a number is added, like `name (2).txt`.
+- Mac hidden files such as `.DS_Store`, `._*` and `__MACOSX`, and symbolic links, are left out.
+- Already-compressed formats (jpg, mp4, docx, pdf, etc.) are stored without recompressing, which keeps it fast.
 
-**이름 방식**은 `⋯` 메뉴에서 고릅니다.
+Choose the **name encoding** from the `⋯` menu.
 
-| 방식 | 언제 쓰나요 |
+| Encoding | When to use it |
 |---|---|
-| UTF-8 (기본) | 윈도우 10·11 탐색기, 반디집, 7-Zip 등 요즘 프로그램 |
-| 옛날 윈도우 호환 (CP949) | 윈도우 7이나, 올리면 파일명이 깨지는 오래된 그룹웨어. 이모지처럼 CP949에 없는 글자는 `_` 로 바뀝니다. 원래 이름도 함께 넣어두어 반디집·7-Zip에서는 원래 이름으로 풀립니다. |
+| UTF-8 (default) | Windows 10/11 File Explorer, Bandizip, 7-Zip and other modern tools |
+| Legacy Windows (CP949) (`옛날 윈도우 호환 (CP949)`) | Windows 7, or old groupware that garbles uploaded file names. Characters not in CP949, such as emoji, become `_`. The original names are stored too, so Bandizip and 7-Zip extract them with their original names. |
 
-아직 4GB가 넘거나 파일이 65,535개가 넘는 ZIP은 만들 수 없습니다.
+ZIPs over 4 GB or with more than 65,535 files can't be created yet.
 
-### 이미 만든 ZIP 고치기
+### Fixing an existing ZIP
 
-맥에서 압축해 둔 ZIP 파일 하나를 올리면, 압축을 풀지 않고 ZIP 안의 이름을 검사합니다.
+Drop a single ZIP file that was compressed on a Mac, and MACWIN checks the names inside it without extracting it.
 
-- 윈도우에서 깨지는 이름이 있으면 목록으로 보여주고, **윈도우용으로 고치기**를 누르면 원본 ZIP 옆에 `이름 (윈도우용).zip` 을 만듭니다.
-- 파일 내용은 압축된 그대로 옮겨 담기 때문에 빠르고, 내용은 바뀌지 않습니다. 원본 ZIP도 그대로 둡니다.
-- 이름 규칙, `__MACOSX`·`._*`·`.DS_Store` 빼기, 이름 방식(UTF-8 / CP949)은 위의 윈도우용 ZIP과 같습니다.
-- 암호가 걸린 ZIP도 이름만 고치고 암호는 그대로 둡니다.
-- 분할 압축(`.z01` 등)과 4GB가 넘는 ZIP은 아직 고칠 수 없습니다.
+- If any names would break on Windows, they're listed. Click **Fix for Windows** (`윈도우용으로 고치기`) to create `name (윈도우용).zip` next to the original ZIP.
+- File contents are copied over exactly as compressed, so it's fast and the contents don't change. The original ZIP is left as is.
+- The naming rules, removal of `__MACOSX` / `._*` / `.DS_Store`, and name encoding (UTF-8 / CP949) are the same as for Windows ZIP above.
+- Password-protected ZIPs work too: only the names are fixed, and the password stays the same.
+- Split archives (`.z01`, etc.) and ZIPs over 4 GB can't be fixed yet.
 
-### 되돌리기
+### Undo
 
-고친 직후 완료 화면의 **되돌리기**, 또는 창 오른쪽 위 `⋯` 메뉴의 **마지막 수정 되돌리기**로 원래 이름으로 돌릴 수 있습니다.
+Right after fixing, use **Undo** (`되돌리기`) on the completion screen, or **Undo last fix** (`마지막 수정 되돌리기`) in the `⋯` menu at the top right of the window, to restore the original names.
 
-바꾼 기록은 여기에 남습니다.
+Renames are recorded here:
 
-- `~/Library/Application Support/MACWIN/last.json` — 마지막 작업 (되돌리기용)
-- `~/Library/Application Support/MACWIN/history.log` — 전체 기록
+- `~/Library/Application Support/MACWIN/last.json` — the last operation (used for undo)
+- `~/Library/Application Support/MACWIN/history.log` — full history
 
-## 주의할 점
+## Things to know
 
-- **고치기는 원본 파일의 이름을 직접 바꿉니다.** 원본을 건드리기 싫다면 **윈도우용 ZIP**을 쓰세요.
-- 같은 이름이 이미 있으면 덮어쓰지 않고 실패로 표시합니다.
-- 다른 문서나 코드가 파일 이름으로 참조하고 있다면(HTML 링크, 코드 안 경로, 엑셀 외부 참조 등) 연결이 끊길 수 있습니다.
-- iCloud·Dropbox 폴더라면 이름이 바뀐 파일이 다시 동기화됩니다.
+- **Fix renames your original files directly.** If you don't want to touch the originals, use **Windows ZIP** instead.
+- If a file with the new name already exists, it isn't overwritten; the rename is reported as failed.
+- If other documents or code refer to a file by name (HTML links, paths in code, Excel external references, etc.), those links may break.
+- In iCloud or Dropbox folders, renamed files will be synced again.
 
-## 터미널에서 쓰기 (개발용)
+## Command line (for development)
 
 ```bash
 swift build --product macwin-cli
-.build/debug/macwin-cli scan <경로...>   # 검사만
-.build/debug/macwin-cli fix <경로...>    # 검사하고 고치기
-.build/debug/macwin-cli zip [--cp949] [-o 출력.zip] <경로...>   # 윈도우용 ZIP 만들기
-.build/debug/macwin-cli repair [--check] [--cp949] [-o 출력.zip] <기존.zip>   # 기존 ZIP 고치기 (--check: 검사만)
-.build/debug/macwin-cli undo             # 마지막 작업 되돌리기
+.build/debug/macwin-cli scan <paths...>   # check only
+.build/debug/macwin-cli fix <paths...>    # check and fix
+.build/debug/macwin-cli zip [--cp949] [-o out.zip] <paths...>   # create a Windows ZIP
+.build/debug/macwin-cli repair [--check] [--cp949] [-o out.zip] <existing.zip>   # fix an existing ZIP (--check: inspect only)
+.build/debug/macwin-cli undo              # undo the last fix
 ```
 
-## 구조
+## Project layout
 
 ```
 Sources/
-  ScrubCore/    검사·수정 로직 (Rules: 규칙, Scanner: 폴더 검사, Fixer: 이름 바꾸기·되돌리기, Zipper: 윈도우용 ZIP, ZipRepair: 기존 ZIP 고치기)
-  MACWIN/       메뉴바 앱 (AppKit + SwiftUI)
-  macwin-cli/   터미널용 도구
-build.sh        build/MACWIN.app 만들기 (유니버설)
-release.sh      dist/MACWIN.zip, dist/MACWIN.dmg 만들기
-Resources/      아이콘 이미지, AppIcon.icns
-scripts/make-icns.swift   Resources/AppIcon.icns 다시 만들기
+  ScrubCore/    Check/fix logic (Rules: naming rules, Scanner: folder scan, Fixer: rename and undo, Zipper: Windows ZIP, ZipRepair: fix existing ZIPs)
+  MACWIN/       Menu bar app (AppKit + SwiftUI)
+  macwin-cli/   Command-line tool
+build.sh        Builds build/MACWIN.app (universal)
+release.sh      Builds dist/MACWIN.zip and dist/MACWIN.dmg
+Resources/      Icon images, AppIcon.icns
+scripts/make-icns.swift   Regenerates Resources/AppIcon.icns
 ```
 
-## 출처
+## Credits
 
-- 아이콘: [Icons8](https://icons8.com)의 Windows 아이콘 (무료 라이선스, 앱의 `⋯` → **MACWIN 정보**에도 표시)
+- Icon: Windows icon by [Icons8](https://icons8.com) (free license; also credited in the app under `⋯` → **About MACWIN** (`MACWIN 정보`))
