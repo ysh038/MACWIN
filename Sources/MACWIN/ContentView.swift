@@ -38,7 +38,7 @@ struct ContentView: View {
 
     private var header: some View {
         HStack {
-            Image(systemName: "sparkles").foregroundStyle(.tint)
+            Image(systemName: "square.grid.2x2").foregroundStyle(.tint)
             VStack(alignment: .leading, spacing: 1) {
                 Text("MACWIN").font(.headline)
                 Text("윈도우로 보내기 전에 검토하기").font(.caption).foregroundStyle(.secondary)
@@ -155,7 +155,7 @@ private struct ScannedView: View {
                 Button {
                     model.scrub()
                 } label: {
-                    Label("고치기 (\(model.selected.count))", systemImage: "sparkles")
+                    Label("고치기 (\(model.selected.count))", systemImage: "checkmark")
                 }
                 .keyboardShortcut(.defaultAction)
                 .disabled(model.selected.isEmpty)
@@ -276,7 +276,7 @@ private struct DoneView: View {
         let rep = model.report
         VStack(spacing: 12) {
             Spacer()
-            Image(systemName: rep.failed.isEmpty ? "sparkles" : "exclamationmark.triangle")
+            Image(systemName: rep.failed.isEmpty ? "checkmark.circle.fill" : "exclamationmark.triangle")
                 .font(.system(size: 44))
                 .foregroundStyle(rep.failed.isEmpty ? Color.accentColor : .orange)
             Text("\(rep.done.count)개 고쳤어요").font(.title2)

@@ -22,7 +22,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSDr
     func applicationDidFinishLaunching(_ notification: Notification) {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         if let button = statusItem.button {
-            button.image = NSImage(systemSymbolName: "sparkles", accessibilityDescription: "MACWIN")
+            button.image = NSImage(systemSymbolName: "square.grid.2x2", accessibilityDescription: "MACWIN")
             button.target = self
             button.action = #selector(togglePanel)
             // 상태바 버튼의 창에 드롭을 등록하면 창 delegate로 드래그 메시지가 옴
