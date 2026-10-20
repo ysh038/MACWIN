@@ -38,7 +38,7 @@ struct ContentView: View {
 
     private var header: some View {
         HStack {
-            Image(systemName: "square.grid.2x2").foregroundStyle(.tint)
+            Image(nsImage: AppIcon.logo(size: 28))
             VStack(alignment: .leading, spacing: 1) {
                 Text("MACWIN").font(.headline)
                 Text("윈도우로 보내기 전에 검토하기").font(.caption).foregroundStyle(.secondary)
@@ -46,6 +46,7 @@ struct ContentView: View {
             Spacer()
             Menu {
                 if model.canUndo { Button("마지막 수정 되돌리기") { model.undo() } }
+                Button("MACWIN 정보") { AppIcon.showAbout() }
                 Button("종료") { NSApp.terminate(nil) }
             } label: {
                 Image(systemName: "ellipsis.circle")

@@ -6,6 +6,8 @@
 	<string>MACWIN</string>
 	<key>CFBundleExecutable</key>
 	<string>MACWIN</string>
+	<key>CFBundleIconFile</key>
+	<string>AppIcon</string>
 	<key>CFBundleIdentifier</key>
 	<string>local.macwin</string>
 	<key>CFBundleName</key>

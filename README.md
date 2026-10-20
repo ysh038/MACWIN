@@ -1,3 +1,5 @@
+<img src="Resources/windows98-96.png" width="64" alt="MACWIN 아이콘">
+
 # MACWIN
 
 맥에서 만든 파일을 **윈도우로 보내거나 웹(사내 그룹웨어 등)에 올리기 전에** 파일명을 검토하고 고쳐주는 메뉴바 앱입니다.
@@ -70,11 +72,11 @@ cd MACWIN
 
 ## 사용법
 
-실행하면 Dock에는 안 보이고 메뉴바에 윈도우 모양(⊞) 아이콘이 생깁니다.
+실행하면 Dock에는 안 보이고 메뉴바에 옛날 윈도우 로고 아이콘이 생깁니다.
 
 1. **검사할 폴더/파일 올리기** — 셋 중 편한 방법으로
-   - Finder에서 끌어다 메뉴바 ⊞ 아이콘 위에 놓기
-   - ⊞ 아이콘을 눌러 창을 열고, 창에 끌어다 놓기
+   - Finder에서 끌어다 메뉴바 아이콘 위에 놓기
+   - 메뉴바 아이콘을 눌러 창을 열고, 창에 끌어다 놓기
    - 창에서 **선택…** 버튼으로 고르기
 2. **결과 확인**
    - **고칠 것**: 체크된 항목만 고칩니다. 원하지 않는 항목은 체크를 풀어주세요. 이름이 바뀌는 경우 `원래:` 로 원래 이름을 보여줍니다.
@@ -119,4 +121,10 @@ Sources/
   macwin-cli/   터미널용 도구
 build.sh        build/MACWIN.app 만들기 (유니버설)
 release.sh      dist/MACWIN.zip, dist/MACWIN.dmg 만들기
+Resources/      아이콘 이미지, AppIcon.icns
+scripts/make-icns.swift   Resources/AppIcon.icns 다시 만들기
 ```
+
+## 출처
+
+- 아이콘: [Icons8](https://icons8.com)의 Windows 아이콘 (무료 라이선스, 앱의 `⋯` → **MACWIN 정보**에도 표시)
