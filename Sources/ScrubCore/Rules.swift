@@ -25,31 +25,31 @@ public enum IssueKind: String, Codable, CaseIterable {
 
     public var title: String {
         switch self {
-        case .nfd: return "자소분리"
-        case .invisibleChar: return "특수 공백"
-        case .controlChar: return "제어 문자"
-        case .forbiddenChar: return "금지 문자"
-        case .trailingDotSpace: return "끝 공백/점"
-        case .reservedName: return "예약어"
-        case .zipNoUTF8Flag: return "인코딩 표시 없음"
-        case .nameConflict: return "이름 충돌"
-        case .caseCollision: return "대소문자 충돌"
-        case .longPath: return "긴 경로"
+        case .nfd: return tr("Decomposed (NFD)")
+        case .invisibleChar: return tr("Special space")
+        case .controlChar: return tr("Control character")
+        case .forbiddenChar: return tr("Forbidden character")
+        case .trailingDotSpace: return tr("Trailing space/dot")
+        case .reservedName: return tr("Reserved name")
+        case .zipNoUTF8Flag: return tr("No UTF-8 flag")
+        case .nameConflict: return tr("Name conflict")
+        case .caseCollision: return tr("Case conflict")
+        case .longPath: return tr("Long path")
         }
     }
 
     public var detail: String {
         switch self {
-        case .nfd: return "맥식(NFD) 한글 → 윈도우식(NFC)으로 바꿉니다. 보이는 이름은 그대로예요."
-        case .invisibleChar: return "좁은 공백·제로폭 문자 등을 일반 공백으로 바꾸거나 지웁니다."
-        case .controlChar: return "보이지 않는 제어 문자를 _ 로 바꿉니다."
-        case .forbiddenChar: return "윈도우에서 못 쓰는 \\ : * ? \" < > | 를 _ 로 바꿉니다."
-        case .trailingDotSpace: return "윈도우는 이름 끝의 공백·마침표를 지워버려서 미리 지웁니다."
-        case .reservedName: return "CON, NUL, COM1 같은 이름은 윈도우에서 못 만들어서 뒤에 _ 를 붙입니다."
-        case .zipNoUTF8Flag: return "ZIP에 UTF-8 표시가 없어서 윈도우가 이름을 CP949로 잘못 읽어 깨집니다. 표시를 넣어 고칩니다."
-        case .nameConflict: return "고친 이름이 같은 폴더의 다른 파일과 겹쳐서 건너뜁니다. 직접 바꿔주세요."
-        case .caseCollision: return "대소문자만 다른 이름이 있어요. 윈도우에선 하나가 덮어써집니다."
-        case .longPath: return "경로가 길어서 윈도우 260자 제한에 걸릴 수 있어요."
+        case .nfd: return tr("Converts Mac-style (NFD) characters to Windows-style (NFC). The name looks the same.")
+        case .invisibleChar: return tr("Replaces narrow and zero-width spaces with normal spaces, or removes them.")
+        case .controlChar: return tr("Replaces invisible control characters with _.")
+        case .forbiddenChar: return tr("Replaces \\ : * ? \" < > |, which Windows doesn't allow, with _.")
+        case .trailingDotSpace: return tr("Windows strips spaces and dots at the end of names, so they are removed in advance.")
+        case .reservedName: return tr("Names like CON, NUL and COM1 can't be created on Windows, so _ is appended.")
+        case .zipNoUTF8Flag: return tr("The ZIP doesn't mark its names as UTF-8, so Windows misreads them as CP949 and garbles them. The flag is added.")
+        case .nameConflict: return tr("The fixed name would clash with another file in the same folder, so it is skipped. Please rename it yourself.")
+        case .caseCollision: return tr("Another name differs only in case. On Windows, one will overwrite the other.")
+        case .longPath: return tr("The path is long and may hit the Windows 260-character limit.")
         }
     }
 }

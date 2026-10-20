@@ -31,8 +31,8 @@ public enum ZipError: LocalizedError {
 
     public var errorDescription: String? {
         switch self {
-        case .tooLarge: return "4GB가 넘는 ZIP은 아직 만들 수 없어요."
-        case .tooManyEntries: return "파일이 65,535개를 넘으면 아직 만들 수 없어요."
+        case .tooLarge: return tr("ZIPs over 4 GB can't be created yet.")
+        case .tooManyEntries: return tr("ZIPs with more than 65,535 files can't be created yet.")
         case .io(let msg): return msg
         }
     }
@@ -58,7 +58,7 @@ public enum Zipper {
     public static func defaultOutputPath(for paths: [String]) -> String {
         let first = (paths[0] as NSString).standardizingPath
         let dir = (first as NSString).deletingLastPathComponent
-        let base = paths.count == 1 ? Rules.sanitize((first as NSString).lastPathComponent).fixed : "보관"
+        let base = paths.count == 1 ? Rules.sanitize((first as NSString).lastPathComponent).fixed : tr("Archive")
         var candidate = dir + "/" + base + ".zip"
         var n = 2
         while FileManager.default.fileExists(atPath: candidate) {
@@ -82,7 +82,7 @@ public enum Zipper {
         let dir = (output as NSString).deletingLastPathComponent
         let tmp = dir + "/.macwin-" + UUID().uuidString + ".zip"
         let fd = tmp.withCString { open($0, O_WRONLY | O_CREAT | O_EXCL, 0o644) }
-        guard fd >= 0 else { throw ZipError.io("ZIP 파일을 만들 수 없어요: " + String(cString: strerror(errno))) }
+        guard fd >= 0 else { throw ZipError.io(tr("Couldn't create the ZIP file: %@", String(cString: strerror(errno)))) }
         let out = FileHandle(fileDescriptor: fd, closeOnDealloc: true)
         var succeeded = false
         defer {
@@ -147,7 +147,7 @@ public enum Zipper {
         try out.synchronize()
 
         let rc = tmp.withCString { a in output.withCString { b in renamex_np(a, b, UInt32(RENAME_EXCL)) } }
-        guard rc == 0 else { throw ZipError.io("ZIP 파일 이름을 정할 수 없어요: " + String(cString: strerror(errno))) }
+        guard rc == 0 else { throw ZipError.io(tr("Couldn't name the ZIP file: %@", String(cString: strerror(errno)))) }
         succeeded = true
         progress?(1)
         return report
@@ -244,7 +244,7 @@ public enum Zipper {
     static func writeData(of path: String, to out: FileHandle, deflate: Bool,
                           onRead: (UInt64) -> Void) throws -> (UInt32, UInt64, UInt64) {
         let fd = path.withCString { open($0, O_RDONLY) }
-        guard fd >= 0 else { throw ZipError.io("읽을 수 없어요: \(path)") }
+        guard fd >= 0 else { throw ZipError.io(tr("Couldn't read: %@", path)) }
         let input = FileHandle(fileDescriptor: fd, closeOnDealloc: true)
         defer { try? input.close() }
 
@@ -265,7 +265,7 @@ public enum Zipper {
         let stream = UnsafeMutablePointer<compression_stream>.allocate(capacity: 1)
         defer { stream.deallocate() }
         guard compression_stream_init(stream, COMPRESSION_STREAM_ENCODE, COMPRESSION_ZLIB) == COMPRESSION_STATUS_OK else {
-            throw ZipError.io("압축을 시작할 수 없어요")
+            throw ZipError.io(tr("Couldn't start compressing"))
         }
         defer { compression_stream_destroy(stream) }
 
@@ -289,7 +289,7 @@ public enum Zipper {
                     stream.pointee.dst_ptr = dst
                     stream.pointee.dst_size = dstSize
                     status = compression_stream_process(stream, finalize ? Int32(COMPRESSION_STREAM_FINALIZE.rawValue) : 0)
-                    guard status != COMPRESSION_STATUS_ERROR else { throw ZipError.io("압축 중 오류가 났어요: \(path)") }
+                    guard status != COMPRESSION_STATUS_ERROR else { throw ZipError.io(tr("Compression failed: %@", path)) }
                     let produced = dstSize - stream.pointee.dst_size
                     if produced > 0 {
                         try out.write(contentsOf: Data(bytes: dst, count: produced))

@@ -1,4 +1,5 @@
 import AppKit
+import ScrubCore
 
 /// 옛날 윈도우 로고 아이콘 (Icons8, https://icons8.com — 무료 라이선스라 정보 화면에 출처 표시)
 enum AppIcon {
@@ -14,7 +15,7 @@ enum AppIcon {
 
     static func showAbout() {
         let credits = NSMutableAttributedString(
-            string: "맥 파일명을 윈도우·웹 업로드용으로 검토하고 고칩니다.\n\n아이콘: ",
+            string: tr("Checks and fixes Mac file names for Windows and web uploads.") + "\n\n" + tr("Icon: "),
             attributes: [.font: NSFont.systemFont(ofSize: 11)])
         credits.append(NSAttributedString(string: "Icons8", attributes: [
             .font: NSFont.systemFont(ofSize: 11),

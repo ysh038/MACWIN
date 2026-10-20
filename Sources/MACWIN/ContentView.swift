@@ -13,7 +13,7 @@ struct ContentView: View {
             Group {
                 switch model.phase {
                 case .idle: IdleView(model: model, targeted: targeted)
-                case .scanning: ProgressView("검사하는 중…").frame(maxWidth: .infinity, maxHeight: .infinity)
+                case .scanning: ProgressView(tr("Checking…")).frame(maxWidth: .infinity, maxHeight: .infinity)
                 case .scanned: ScannedView(model: model)
                 case .done: DoneView(model: model)
                 case .zipInspected: ZipInspectView(model: model)
@@ -45,15 +45,15 @@ struct ContentView: View {
             Image(nsImage: AppIcon.logo(size: 28))
             VStack(alignment: .leading, spacing: 1) {
                 Text("MACWIN").font(.headline)
-                Text("윈도우로 보내기 전에 검토하기").font(.caption).foregroundStyle(.secondary)
+                Text(tr("Check before sending to Windows")).font(.caption).foregroundStyle(.secondary)
             }
             Spacer()
             Menu {
-                if model.canUndo { Button("마지막 수정 되돌리기") { model.undo() } }
-                Toggle("ZIP: 옛날 윈도우 호환 (CP949)", isOn: $model.legacyCP949)
+                if model.canUndo { Button(tr("Undo Last Fix")) { model.undo() } }
+                Toggle(tr("ZIP: Legacy Windows (CP949)"), isOn: $model.legacyCP949)
                 Divider()
-                Button("MACWIN 정보") { AppIcon.showAbout() }
-                Button("종료") { NSApp.terminate(nil) }
+                Button(tr("About MACWIN")) { AppIcon.showAbout() }
+                Button(tr("Quit")) { NSApp.terminate(nil) }
             } label: {
                 Image(systemName: "ellipsis.circle")
             }
@@ -75,10 +75,10 @@ private struct IdleView: View {
         VStack(spacing: 14) {
             Spacer()
             Image(systemName: "tray.and.arrow.down").font(.system(size: 40)).foregroundStyle(.secondary)
-            Text("폴더나 파일을 여기에 놓으세요").font(.title3)
-            Text("메뉴바 아이콘 위에 바로 놓아도 돼요").font(.callout).foregroundStyle(.secondary)
-            Text("ZIP 파일을 놓으면 ZIP 안의 이름을 검사해요").font(.callout).foregroundStyle(.secondary)
-            Button("선택…") { model.choose() }
+            Text(tr("Drop folders or files here")).font(.title3)
+            Text(tr("You can also drop them on the menu bar icon")).font(.callout).foregroundStyle(.secondary)
+            Text(tr("Drop a ZIP file to check the names inside it")).font(.callout).foregroundStyle(.secondary)
+            Button(tr("Choose…")) { model.choose() }
             if let notice = model.notice {
                 Text(notice).font(.callout).foregroundStyle(.secondary).multilineTextAlignment(.center)
             }
@@ -122,14 +122,14 @@ private struct ScannedView: View {
             HStack {
                 Text(r.roots.joined(separator: ", ")).font(.subheadline.weight(.semibold)).lineLimit(1)
                 Spacer()
-                Text("\(r.scanned)개 검사").font(.caption).foregroundStyle(.secondary)
+                Text(tr("Checked %ld items", r.scanned)).font(.caption).foregroundStyle(.secondary)
             }
             .padding(.horizontal, 12).padding(.vertical, 8)
 
             if r.findings.isEmpty {
                 Spacer()
                 Image(systemName: "checkmark.seal.fill").font(.system(size: 44)).foregroundStyle(.green)
-                Text("깨끗해요. 윈도우로 보내도 괜찮아요.").font(.title3).padding(.top, 8)
+                Text(tr("All clean. Safe to send to Windows.")).font(.title3).padding(.top, 8)
                 junkNote.padding(.top, 12)
                 Spacer()
             } else {
@@ -137,16 +137,16 @@ private struct ScannedView: View {
                     LazyVStack(alignment: .leading, spacing: 4) {
                         if !r.fixable.isEmpty {
                             HStack {
-                                Text("고칠 것 \(r.fixable.count)개").font(.caption.weight(.semibold))
+                                Text(tr("To fix: %ld", r.fixable.count)).font(.caption.weight(.semibold))
                                 Spacer()
-                                Button(model.selected.count == r.fixable.count ? "전체 해제" : "전체 선택") { model.toggleAll() }
+                                Button(model.selected.count == r.fixable.count ? tr("Deselect All") : tr("Select All")) { model.toggleAll() }
                                     .buttonStyle(.link).font(.caption)
                             }
                             .padding(.top, 4)
                             ForEach(r.fixable) { f in FixRow(finding: f, selected: binding(for: f.id)) }
                         }
                         if !r.warnings.isEmpty {
-                            Text("직접 확인할 것 \(r.warnings.count)개").font(.caption.weight(.semibold)).padding(.top, 10)
+                            Text(tr("Check yourself: %ld", r.warnings.count)).font(.caption.weight(.semibold)).padding(.top, 10)
                             ForEach(r.warnings) { f in WarnRow(finding: f) }
                         }
                         junkNote.padding(.top, 10)
@@ -158,24 +158,24 @@ private struct ScannedView: View {
 
             Divider()
             HStack {
-                Button("처음으로") { model.reset() }
+                Button(tr("Start Over")) { model.reset() }
                 Spacer()
                 // 원본은 그대로 두고 고친 이름으로 ZIP만 만들기
                 Button {
                     model.makeZip()
                 } label: {
-                    Label("윈도우용 ZIP", systemImage: "doc.zipper")
+                    Label(tr("Windows ZIP"), systemImage: "doc.zipper")
                 }
-                .help("원본은 그대로 두고, 윈도우에서 안 깨지는 이름으로 ZIP을 원본 옆에 만들어요.")
+                .help(tr("Creates a ZIP with Windows-safe names next to the originals, without touching them."))
                 if !r.fixable.isEmpty {
                     Button {
                         model.scrub()
                     } label: {
-                        Label("고치기 (\(model.selected.count))", systemImage: "checkmark")
+                        Label(tr("Fix (%ld)", model.selected.count), systemImage: "checkmark")
                     }
                     .keyboardShortcut(.defaultAction)
                     .disabled(model.selected.isEmpty)
-                    .help("원본 파일의 이름을 바로 고쳐요.")
+                    .help(tr("Renames the original files right away."))
                 }
             }
             .padding(12)
@@ -187,10 +187,10 @@ private struct ScannedView: View {
         if r.junkCount > 0 || !r.skipped.isEmpty {
             VStack(alignment: .leading, spacing: 2) {
                 if r.junkCount > 0 {
-                    Text("맥 숨김파일(.DS_Store, ._ 등) \(r.junkCount)개는 그대로 뒀어요. 윈도우에선 보일 수 있어요.")
+                    Text(tr("Left %ld Mac hidden files (.DS_Store, ._ etc.) as they are. They may be visible on Windows.", r.junkCount))
                 }
                 if !r.skipped.isEmpty {
-                    Text("안쪽은 검사 안 함: " + r.skipped.joined(separator: ", ")).lineLimit(2)
+                    Text(tr("Not checked inside: %@", r.skipped.joined(separator: ", "))).lineLimit(2)
                 }
             }
             .font(.caption2).foregroundStyle(.secondary)
@@ -213,7 +213,7 @@ private struct FixRow: View {
             VStack(alignment: .leading, spacing: 2) {
                 PathText(path: finding.displayPath, isDirectory: finding.isDirectory)
                 if !finding.looksSame {
-                    Text("원래: " + visible(finding.name)).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                    Text(tr("Original: %@", visible(finding.name))).font(.caption).foregroundStyle(.secondary).lineLimit(1)
                 }
                 Chips(issues: finding.issues)
             }
@@ -297,7 +297,7 @@ private struct DoneView: View {
             Image(systemName: rep.failed.isEmpty ? "checkmark.circle.fill" : "exclamationmark.triangle")
                 .font(.system(size: 44))
                 .foregroundStyle(rep.failed.isEmpty ? Color.accentColor : .orange)
-            Text("\(rep.done.count)개 고쳤어요").font(.title2)
+            Text(tr("Fixed %ld items", rep.done.count)).font(.title2)
             if !rep.failed.isEmpty {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 2) {
@@ -311,11 +311,11 @@ private struct DoneView: View {
             }
             Spacer()
             HStack {
-                if model.canUndo { Button("되돌리기") { model.undo() } }
+                if model.canUndo { Button(tr("Undo")) { model.undo() } }
                 Spacer()
-                Button("다시 검사") { model.rescan() }
-                Button("윈도우용 ZIP") { model.makeZip() }
-                Button("완료") { model.reset() }.keyboardShortcut(.defaultAction)
+                Button(tr("Check Again")) { model.rescan() }
+                Button(tr("Windows ZIP")) { model.makeZip() }
+                Button(tr("Done")) { model.reset() }.keyboardShortcut(.defaultAction)
             }
             .padding(12)
         }
@@ -336,36 +336,36 @@ private struct ZipInspectView: View {
                 Text((ins.path as NSString).lastPathComponent.precomposedStringWithCanonicalMapping)
                     .font(.subheadline.weight(.semibold)).lineLimit(1).truncationMode(.middle)
                 Spacer()
-                Text("항목 \(ins.entryCount)개 검사").font(.caption).foregroundStyle(.secondary)
+                Text(tr("Checked %ld entries", ins.entryCount)).font(.caption).foregroundStyle(.secondary)
             }
             .padding(.horizontal, 12).padding(.vertical, 8)
 
             if let why = ins.unsupported {
                 Spacer()
                 Image(systemName: "exclamationmark.triangle").font(.system(size: 44)).foregroundStyle(.orange)
-                Text("이 ZIP은 고칠 수 없어요").font(.title3).padding(.top, 8)
+                Text(tr("This ZIP can't be fixed")).font(.title3).padding(.top, 8)
                 Text(why).font(.callout).foregroundStyle(.secondary).multilineTextAlignment(.center).padding(.horizontal, 24)
                 Spacer()
             } else if !ins.needsRepair {
                 Spacer()
                 Image(systemName: "checkmark.seal.fill").font(.system(size: 44)).foregroundStyle(.green)
-                Text("깨끗해요. 윈도우에서도 이름이 안 깨져요.").font(.title3).padding(.top, 8)
+                Text(tr("All clean. Names won't break on Windows.")).font(.title3).padding(.top, 8)
                 Spacer()
             } else {
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: 4) {
                         if ins.issues.contains(where: { $0.issues.contains(.zipNoUTF8Flag) }) {
-                            Label("맥에서 만든 ZIP이라 윈도우에서 이름이 깨져요.", systemImage: "exclamationmark.triangle.fill")
+                            Label(tr("This ZIP was made on a Mac, so names will be garbled on Windows."), systemImage: "exclamationmark.triangle.fill")
                                 .font(.callout).foregroundStyle(.orange).padding(.vertical, 4)
                         }
                         if !ins.issues.isEmpty {
-                            Text("고칠 이름 \(ins.issues.count)개").font(.caption.weight(.semibold)).padding(.top, 4)
+                            Text(tr("Names to fix: %ld", ins.issues.count)).font(.caption.weight(.semibold)).padding(.top, 4)
                             ForEach(ins.issues) { e in ZipEntryRow(entry: e) }
                         }
                         VStack(alignment: .leading, spacing: 2) {
-                            if ins.junkCount > 0 { Text("맥 숨김파일(__MACOSX, ._ 등) \(ins.junkCount)개는 빼요.") }
-                            if ins.encrypted { Text("암호가 걸린 ZIP이에요. 이름만 고치고 암호는 그대로 둬요.") }
-                            Text("원본 ZIP은 그대로 두고, 옆에 \"(윈도우용)\" ZIP을 새로 만들어요.")
+                            if ins.junkCount > 0 { Text(tr("%ld Mac hidden files (__MACOSX, ._ etc.) will be removed.", ins.junkCount)) }
+                            if ins.encrypted { Text(tr("This ZIP is password-protected. Only names are fixed; the password stays the same.")) }
+                            Text(tr("The original ZIP is kept. A new \"(for Windows)\" ZIP is created next to it."))
                         }
                         .font(.caption2).foregroundStyle(.secondary).padding(.top, 10)
                     }
@@ -376,13 +376,13 @@ private struct ZipInspectView: View {
 
             Divider()
             HStack {
-                Button("처음으로") { model.reset() }
+                Button(tr("Start Over")) { model.reset() }
                 Spacer()
                 if ins.needsRepair {
                     Button {
                         model.repairZip()
                     } label: {
-                        Label("윈도우용으로 고치기", systemImage: "doc.zipper")
+                        Label(tr("Fix for Windows"), systemImage: "doc.zipper")
                     }
                     .keyboardShortcut(.defaultAction)
                 }
@@ -404,7 +404,7 @@ private struct ZipEntryRow: View {
             VStack(alignment: .leading, spacing: 2) {
                 PathText(path: newPath, isDirectory: entry.isDirectory)
                 if !entry.looksSame && !(newPath.hasSuffix("/" + oldName) || newPath == oldName) {
-                    Text("원래: " + visible(oldName)).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                    Text(tr("Original: %@", visible(oldName))).font(.caption).foregroundStyle(.secondary).lineLimit(1)
                 }
                 Chips(issues: entry.issues)
             }
@@ -421,7 +421,7 @@ private struct ZippingView: View {
         VStack(spacing: 12) {
             ProgressView(value: model.zipProgress)
                 .frame(width: 260)
-            Text("ZIP 만드는 중… \(Int(model.zipProgress * 100))%").foregroundStyle(.secondary)
+            Text(tr("Creating ZIP… %ld%%", Int(model.zipProgress * 100))).foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -436,32 +436,32 @@ private struct ZippedView: View {
             Spacer()
             if let error = model.zipError {
                 Image(systemName: "exclamationmark.triangle").font(.system(size: 44)).foregroundStyle(.orange)
-                Text("ZIP을 만들지 못했어요").font(.title2)
+                Text(tr("Couldn't create the ZIP")).font(.title2)
                 Text(error).font(.callout).foregroundStyle(.secondary).multilineTextAlignment(.center)
                     .padding(.horizontal, 24)
             } else {
                 Image(systemName: "doc.zipper").font(.system(size: 44)).foregroundStyle(Color.accentColor)
-                Text("윈도우용 ZIP을 만들었어요").font(.title2)
+                Text(tr("Created a Windows ZIP")).font(.title2)
                 Text((rep.output as NSString).lastPathComponent.precomposedStringWithCanonicalMapping)
                     .font(.callout.weight(.medium)).lineLimit(1).truncationMode(.middle)
                     .padding(.horizontal, 24)
                 VStack(alignment: .leading, spacing: 3) {
-                    Text("파일 \(rep.fileCount)개, 폴더 \(rep.dirCount)개")
-                    if rep.renamed > 0 { Text("이름 \(rep.renamed)개를 윈도우용으로 바꿔 넣었어요") }
-                    if rep.excludedJunk > 0 { Text("맥 숨김파일 \(rep.excludedJunk)개는 뺐어요") }
-                    if !rep.skippedLinks.isEmpty { Text("바로가기(심볼릭 링크) \(rep.skippedLinks.count)개는 뺐어요") }
-                    Text(model.legacyCP949 ? "이름 방식: 옛날 윈도우 호환 (CP949)" : "이름 방식: UTF-8 (윈도우 10·11)")
+                    Text(tr("%ld files, %ld folders", rep.fileCount, rep.dirCount))
+                    if rep.renamed > 0 { Text(tr("Renamed %ld items for Windows", rep.renamed)) }
+                    if rep.excludedJunk > 0 { Text(tr("Removed %ld Mac hidden files", rep.excludedJunk)) }
+                    if !rep.skippedLinks.isEmpty { Text(tr("Removed %ld symbolic links", rep.skippedLinks.count)) }
+                    Text(model.legacyCP949 ? tr("Name encoding: Legacy Windows (CP949)") : tr("Name encoding: UTF-8 (Windows 10/11)"))
                         .foregroundStyle(.secondary)
-                    Text("원본 파일은 그대로예요.").foregroundStyle(.secondary)
+                    Text(tr("The original files are unchanged.")).foregroundStyle(.secondary)
                 }
                 .font(.callout)
             }
             Spacer()
             HStack {
-                Button("처음으로") { model.reset() }
+                Button(tr("Start Over")) { model.reset() }
                 Spacer()
                 if model.zipError == nil {
-                    Button("Finder에서 보기") { model.revealZip() }.keyboardShortcut(.defaultAction)
+                    Button(tr("Show in Finder")) { model.revealZip() }.keyboardShortcut(.defaultAction)
                 }
             }
             .padding(12)

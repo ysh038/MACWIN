@@ -16,5 +16,6 @@ lipo -create -output "$APP/Contents/MacOS/MACWIN" \
 cp Info.plist "$APP/Contents/"
 mkdir -p "$APP/Contents/Resources"
 cp Resources/AppIcon.icns Resources/windows98-*.png "$APP/Contents/Resources/"
+cp -R Resources/en.lproj Resources/ko.lproj "$APP/Contents/Resources/"
 codesign --force --sign - "$APP"
 echo "만들었어요: $APP"

@@ -2,8 +2,6 @@
 
 # MACWIN
 
-**English** | [한국어](README.ko.md)
-
 A macOS menu bar app that checks and fixes file names **before you send files to Windows or upload them to the web** (company groupware, etc.).
 
 Korean file names created on a Mac often show up on Windows with their syllables broken apart (`한글` → `ㅎㅏㄴㄱㅡㄹ`), can't be found by search, or fail to copy at all. Drop your files on the menu bar icon before sending them, and MACWIN finds the problematic names and fixes them.
@@ -12,19 +10,19 @@ There are three ways to use it:
 
 - **Fix**: rename the original files in place (can be undone).
 - **Compress to a Windows ZIP**: leave the originals alone and create a new ZIP with Windows-safe names.
-- **Fix an existing ZIP**: drop a ZIP you already made on a Mac, and MACWIN writes a `(윈도우용)` ("for Windows") copy next to it with the names inside fixed.
+- **Fix an existing ZIP**: drop a ZIP you already made on a Mac, and MACWIN writes a `(for Windows)` copy next to it with the names inside fixed.
 
 ZIPs made with the Mac's built-in compression (Finder's "Compress") don't mark their names as UTF-8, so Windows misreads them as CP949 and the names come out garbled. They also carry a `__MACOSX` folder along. Both ZIP features above avoid these problems.
 
 - macOS 13 (Ventura) or later, on both Apple Silicon and Intel Macs
 
-> The app's interface is in Korean. Button and menu names in this document are given in English with the Korean label in parentheses, e.g. **Fix** (`고치기`).
+> The app follows your Mac's system language. It shows Korean or English, whichever comes first in your preferred languages, and English if neither is listed. You can also set it per app in **System Settings → General → Language & Region → Applications**.
 
 ## What it checks
 
 | Check | Description | Action |
 |---|---|---|
-| Decomposed Hangul (NFD) | Converts Mac-style (NFD) Korean to Windows-style (NFC). The name looks the same. | Fixed |
+| Decomposed (NFD) | Converts Mac-style (NFD) characters — Korean, accented letters like `é`, Japanese kana like `が` — to Windows-style (NFC). The name looks the same. | Fixed |
 | Special spaces | Replaces narrow no-break spaces (U+202F) and similar with a normal space, and removes zero-width characters. | Fixed |
 | Control characters | Replaces invisible control characters with `_`. | Fixed |
 | Forbidden characters | Replaces `\ : * ? " < > \|`, which Windows doesn't allow, with `_`. | Fixed |
@@ -89,21 +87,21 @@ Once running, MACWIN doesn't appear in the Dock. Instead, a classic Windows logo
 1. **Drop the folders or files to check** — whichever is easiest:
    - Drag them from Finder onto the menu bar icon
    - Click the menu bar icon to open the window, then drag them into it
-   - Use the **Choose…** (`선택…`) button in the window
+   - Use the **Choose…** button in the window
    - Drop **a single ZIP file** to check the names inside it. See [Fixing an existing ZIP](#fixing-an-existing-zip).
 2. **Review the results**
-   - **To fix** (`고칠 것`): only checked items are fixed. Uncheck anything you want to leave as is. When a name will change, the original is shown after `원래:` ("original").
-   - **Check yourself** (`직접 확인할 것`): items that aren't fixed automatically. Rename them yourself if needed.
-   - If nothing is wrong, you'll see "all clean" (`깨끗해요`).
+   - **To fix**: only checked items are fixed. Uncheck anything you want to leave as is. When a name will change, the original is shown after **Original:**.
+   - **Check yourself**: items that aren't fixed automatically. Rename them yourself if needed.
+   - If nothing is wrong, you'll see **All clean**.
 3. Choose one:
-   - **Fix** (`고치기`, or Enter): renames the original files. Afterwards, **Check again** (`다시 검사`) confirms nothing is left.
-   - **Windows ZIP** (`윈도우용 ZIP`): leaves the originals alone and creates a new ZIP. See [Windows ZIP](#windows-zip) below.
+   - **Fix** (or Enter): renames the original files. Afterwards, **Check Again** confirms nothing is left.
+   - **Windows ZIP**: leaves the originals alone and creates a new ZIP. See [Windows ZIP](#windows-zip) below.
 
 The window closes when you click outside it or press Esc. It stays open while you're dragging files in.
 
 ### Windows ZIP
 
-Click **Windows ZIP** (`윈도우용 ZIP`) on the results screen (or the screen after fixing) to create `FolderName.zip` next to the originals. If you dropped several items it's named `보관.zip` ("Archive.zip"), and a number is added if the name is taken, like `보관 2.zip`.
+Click **Windows ZIP** on the results screen (or the screen after fixing) to create `FolderName.zip` next to the originals. If you dropped several items it's named `Archive.zip`, and a number is added if the name is taken, like `Archive 2.zip`. (When the app runs in Korean, the names are `보관.zip` and, for fixed ZIPs, `name (윈도우용).zip`.)
 
 - Names inside the ZIP are fixed using the rules in the table above. The original files are not touched.
 - If fixed names collide, a number is added, like `name (2).txt`.
@@ -115,7 +113,7 @@ Choose the **name encoding** from the `⋯` menu.
 | Encoding | When to use it |
 |---|---|
 | UTF-8 (default) | Windows 10/11 File Explorer, Bandizip, 7-Zip and other modern tools |
-| Legacy Windows (CP949) (`옛날 윈도우 호환 (CP949)`) | Windows 7, or old groupware that garbles uploaded file names. Characters not in CP949, such as emoji, become `_`. The original names are stored too, so Bandizip and 7-Zip extract them with their original names. |
+| Legacy Windows (CP949) | Windows 7, or old groupware that garbles uploaded file names. Characters not in CP949, such as emoji, become `_`. The original names are stored too, so Bandizip and 7-Zip extract them with their original names. |
 
 ZIPs over 4 GB or with more than 65,535 files can't be created yet.
 
@@ -123,7 +121,7 @@ ZIPs over 4 GB or with more than 65,535 files can't be created yet.
 
 Drop a single ZIP file that was compressed on a Mac, and MACWIN checks the names inside it without extracting it.
 
-- If any names would break on Windows, they're listed. Click **Fix for Windows** (`윈도우용으로 고치기`) to create `name (윈도우용).zip` next to the original ZIP.
+- If any names would break on Windows, they're listed. Click **Fix for Windows** to create `name (for Windows).zip` next to the original ZIP.
 - File contents are copied over exactly as compressed, so it's fast and the contents don't change. The original ZIP is left as is.
 - The naming rules, removal of `__MACOSX` / `._*` / `.DS_Store`, and name encoding (UTF-8 / CP949) are the same as for Windows ZIP above.
 - Password-protected ZIPs work too: only the names are fixed, and the password stays the same.
@@ -131,7 +129,7 @@ Drop a single ZIP file that was compressed on a Mac, and MACWIN checks the names
 
 ### Undo
 
-Right after fixing, use **Undo** (`되돌리기`) on the completion screen, or **Undo last fix** (`마지막 수정 되돌리기`) in the `⋯` menu at the top right of the window, to restore the original names.
+Right after fixing, use **Undo** on the completion screen, or **Undo Last Fix** in the `⋯` menu at the top right of the window, to restore the original names.
 
 Renames are recorded here:
 
@@ -158,17 +156,19 @@ swift build --product macwin-cli
 
 ## Project layout
 
+UI text is written in English in the code via `tr("...")`. Korean translations live in `Resources/ko.lproj/Localizable.strings`, keyed by the exact English text.
+
 ```
 Sources/
-  ScrubCore/    Check/fix logic (Rules: naming rules, Scanner: folder scan, Fixer: rename and undo, Zipper: Windows ZIP, ZipRepair: fix existing ZIPs)
+  ScrubCore/    Check/fix logic (Rules: naming rules, Scanner: folder scan, Fixer: rename and undo, Zipper: Windows ZIP, ZipRepair: fix existing ZIPs, Localization: tr())
   MACWIN/       Menu bar app (AppKit + SwiftUI)
   macwin-cli/   Command-line tool
 build.sh        Builds build/MACWIN.app (universal)
 release.sh      Builds dist/MACWIN.zip and dist/MACWIN.dmg
-Resources/      Icon images, AppIcon.icns
+Resources/      Icon images, AppIcon.icns, ko.lproj/Localizable.strings (Korean UI text)
 scripts/make-icns.swift   Regenerates Resources/AppIcon.icns
 ```
 
 ## Credits
 
-- Icon: Windows icon by [Icons8](https://icons8.com) (free license; also credited in the app under `⋯` → **About MACWIN** (`MACWIN 정보`))
+- Icon: Windows icon by [Icons8](https://icons8.com) (free license; also credited in the app under `⋯` → **About MACWIN**)

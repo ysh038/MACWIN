@@ -57,7 +57,7 @@ final class ScrubModel: ObservableObject {
         panel.canChooseFiles = true
         panel.canChooseDirectories = true
         panel.allowsMultipleSelection = true
-        panel.prompt = "검사"
+        panel.prompt = tr("Check")
         hidePopover?()
         NSApp.activate(ignoringOtherApps: true)
         if panel.runModal() == .OK, !panel.urls.isEmpty {
@@ -86,9 +86,9 @@ final class ScrubModel: ObservableObject {
         let rep = Fixer.undo(last)
         if rep.failed.isEmpty {
             History.clearLast()
-            notice = "\(rep.done.count)개를 원래 이름으로 되돌렸어요."
+            notice = tr("Restored %ld items to their original names.", rep.done.count)
         } else {
-            notice = "\(rep.done.count)개 되돌림, \(rep.failed.count)개 실패: " + rep.failed.map(\.path).joined(separator: ", ")
+            notice = tr("Restored %ld, failed %ld: %@", rep.done.count, rep.failed.count, rep.failed.map(\.path).joined(separator: ", "))
         }
         canUndo = History.hasLast
         phase = .idle

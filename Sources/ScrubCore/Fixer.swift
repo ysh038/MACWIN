@@ -68,7 +68,7 @@ public enum Fixer {
         let rc = a.withCString { pa in b.withCString { pb in renamex_np(pa, pb, UInt32(RENAME_EXCL)) } }
         if rc != 0 {
             let code = errno
-            let msg = code == EEXIST ? "같은 이름이 이미 있어요" : String(cString: strerror(code))
+            let msg = code == EEXIST ? tr("A file with that name already exists") : String(cString: strerror(code))
             throw NSError(domain: NSPOSIXErrorDomain, code: Int(code), userInfo: [NSLocalizedDescriptionKey: msg])
         }
     }

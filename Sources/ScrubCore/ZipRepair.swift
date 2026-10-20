@@ -67,7 +67,7 @@ public enum ZipRepair {
     /// "이름 (윈도우용).zip". 이미 있으면 "이름 (윈도우용) 2.zip"
     public static func defaultOutputPath(for path: String) -> String {
         let dir = (path as NSString).deletingLastPathComponent
-        let stem = Rules.sanitize(((path as NSString).lastPathComponent as NSString).deletingPathExtension).fixed + " (윈도우용)"
+        let stem = tr("%@ (for Windows)", Rules.sanitize(((path as NSString).lastPathComponent as NSString).deletingPathExtension).fixed)
         var candidate = dir + "/" + stem + ".zip"
         var n = 2
         while FileManager.default.fileExists(atPath: candidate) {
@@ -115,7 +115,7 @@ public enum ZipRepair {
         let dir = (output as NSString).deletingLastPathComponent
         let tmp = dir + "/.macwin-" + UUID().uuidString + ".zip"
         let fd = tmp.withCString { open($0, O_WRONLY | O_CREAT | O_EXCL, 0o644) }
-        guard fd >= 0 else { throw ZipError.io("ZIP 파일을 만들 수 없어요: " + String(cString: strerror(errno))) }
+        guard fd >= 0 else { throw ZipError.io(tr("Couldn't create the ZIP file: %@", String(cString: strerror(errno)))) }
         let out = FileHandle(fileDescriptor: fd, closeOnDealloc: true)
         var succeeded = false
         defer {
@@ -131,7 +131,7 @@ public enum ZipRepair {
             let e = p.entry
             try input.seek(toOffset: UInt64(e.localOffset))
             guard let lh = try input.read(upToCount: 30), lh.count == 30, lh.u32(0) == 0x0403_4b50 else {
-                throw ZipError.io("ZIP이 손상됐어요: \(p.original)")
+                throw ZipError.io(tr("The ZIP is damaged: %@", p.original))
             }
             let localNameLen = UInt64(lh.u16(26)), localExtraLen = Int(lh.u16(28))
             try input.seek(toOffset: UInt64(e.localOffset) + 30 + localNameLen)
@@ -165,7 +165,7 @@ public enum ZipRepair {
             while remaining > 0 {
                 let n = Int(min(remaining, 1 << 20))
                 guard let chunk = try input.read(upToCount: n), !chunk.isEmpty else {
-                    throw ZipError.io("ZIP이 손상됐어요: \(p.original)")
+                    throw ZipError.io(tr("The ZIP is damaged: %@", p.original))
                 }
                 try out.write(contentsOf: chunk)
                 remaining -= UInt64(chunk.count)
@@ -201,7 +201,7 @@ public enum ZipRepair {
         try out.synchronize()
 
         let rc = tmp.withCString { a in output.withCString { b in renamex_np(a, b, UInt32(RENAME_EXCL)) } }
-        guard rc == 0 else { throw ZipError.io("ZIP 파일 이름을 정할 수 없어요: " + String(cString: strerror(errno))) }
+        guard rc == 0 else { throw ZipError.io(tr("Couldn't name the ZIP file: %@", String(cString: strerror(errno)))) }
         succeeded = true
         progress?(1)
         return report
@@ -211,7 +211,7 @@ public enum ZipRepair {
 
     static func openRead(_ path: String) throws -> FileHandle {
         let fd = path.withCString { open($0, O_RDONLY) }
-        guard fd >= 0 else { throw ZipError.io("ZIP 파일을 열 수 없어요: " + String(cString: strerror(errno))) }
+        guard fd >= 0 else { throw ZipError.io(tr("Couldn't open the ZIP file: %@", String(cString: strerror(errno)))) }
         return FileHandle(fileDescriptor: fd, closeOnDealloc: true)
     }
 
@@ -227,31 +227,31 @@ public enum ZipRepair {
             if tail.u32(i) == 0x0605_4b50 { eocd = i; break }
             i -= 1
         }
-        guard let e = eocd else { throw Unsupported(reason: "ZIP 파일이 아니거나 손상됐어요.") }
+        guard let e = eocd else { throw Unsupported(reason: tr("This is not a ZIP file, or it is damaged.")) }
 
         let count = tail.u16(e + 10), cdSize = tail.u32(e + 12), cdOffset = tail.u32(e + 16)
         if tail.u16(e + 4) != 0 || tail.u16(e + 6) != 0 || tail.u16(e + 8) != count {
-            throw Unsupported(reason: "분할 압축(.z01 등)은 아직 고칠 수 없어요.")
+            throw Unsupported(reason: tr("Split archives (.z01, etc.) can't be fixed yet."))
         }
         if count == 0xFFFF || cdSize == 0xFFFF_FFFF || cdOffset == 0xFFFF_FFFF
             || (e >= 20 && tail.u32(e - 20) == 0x0706_4b50) {
-            throw Unsupported(reason: "4GB가 넘는 큰 ZIP(ZIP64)은 아직 고칠 수 없어요.")
+            throw Unsupported(reason: tr("ZIPs over 4 GB (ZIP64) can't be fixed yet."))
         }
         let commentLen = Int(tail.u16(e + 20))
         let comment = tail.subdata(in: (e + 22)..<min(tail.count, e + 22 + commentLen))
 
         try input.seek(toOffset: UInt64(cdOffset))
         let cd = try input.read(upToCount: Int(cdSize)) ?? Data()
-        guard cd.count == Int(cdSize) else { throw Unsupported(reason: "ZIP이 손상됐어요.") }
+        guard cd.count == Int(cdSize) else { throw Unsupported(reason: tr("The ZIP is damaged.")) }
 
         var entries: [Entry] = []
         var p = 0
         for _ in 0..<count {
-            guard p + 46 <= cd.count, cd.u32(p) == 0x0201_4b50 else { throw Unsupported(reason: "ZIP이 손상됐어요.") }
+            guard p + 46 <= cd.count, cd.u32(p) == 0x0201_4b50 else { throw Unsupported(reason: tr("The ZIP is damaged.")) }
             let n = Int(cd.u16(p + 28)), m = Int(cd.u16(p + 30)), k = Int(cd.u16(p + 32))
-            guard p + 46 + n + m + k <= cd.count else { throw Unsupported(reason: "ZIP이 손상됐어요.") }
+            guard p + 46 + n + m + k <= cd.count else { throw Unsupported(reason: tr("The ZIP is damaged.")) }
             let extra = cd.subdata(in: (p + 46 + n)..<(p + 46 + n + m))
-            if extraField(extra, id: 0x0001) != nil { throw Unsupported(reason: "4GB가 넘는 큰 ZIP(ZIP64)은 아직 고칠 수 없어요.") }
+            if extraField(extra, id: 0x0001) != nil { throw Unsupported(reason: tr("ZIPs over 4 GB (ZIP64) can't be fixed yet.")) }
             entries.append(Entry(
                 madeBy: cd.u16(p + 4), flags: cd.u16(p + 8),
                 crc: cd.u32(p + 16), csize: cd.u32(p + 20), usize: cd.u32(p + 24),
