@@ -2,7 +2,7 @@ import AppKit
 import ScrubCore
 
 final class ScrubModel: ObservableObject {
-    enum Phase { case idle, scanning, scanned, done }
+    enum Phase { case idle, scanning, scanned, done, zipping, zipped }
 
     @Published var phase: Phase = .idle
     @Published var result = ScanResult()
@@ -10,6 +10,13 @@ final class ScrubModel: ObservableObject {
     @Published var report = ApplyReport()
     @Published var canUndo = History.hasLast
     @Published var notice: String?
+    @Published var zipProgress = 0.0
+    @Published var zipReport = ZipReport()
+    @Published var zipError: String?
+    /// 옛날 윈도우·그룹웨어 호환 ZIP (CP949)
+    @Published var legacyCP949 = UserDefaults.standard.bool(forKey: "zipLegacyCP949") {
+        didSet { UserDefaults.standard.set(legacyCP949, forKey: "zipLegacyCP949") }
+    }
 
     var showPopover: (() -> Void)?
     var hidePopover: (() -> Void)?
@@ -50,6 +57,14 @@ final class ScrubModel: ObservableObject {
         let picked = result.findings.filter { selected.contains($0.id) }
         report = Fixer.apply(picked)
         canUndo = History.hasLast
+        // 맨 위 항목 이름이 바뀌었으면 다시 검사·ZIP 때 새 경로를 쓰도록
+        lastURLs = lastURLs.map { url in
+            let parent = (url.deletingLastPathComponent().path as NSString).standardizingPath
+            let name = url.lastPathComponent
+            guard let r = report.done.first(where: { ($0.parent as NSString).standardizingPath == parent && $0.old == name })
+            else { return url }
+            return URL(fileURLWithPath: r.parent).appendingPathComponent(r.new)
+        }
         phase = .done
     }
 
@@ -64,6 +79,34 @@ final class ScrubModel: ObservableObject {
         }
         canUndo = History.hasLast
         phase = .idle
+    }
+
+    /// 원본은 그대로 두고 윈도우용 ZIP을 원본 옆에 만듦
+    func makeZip() {
+        let paths = lastURLs.map(\.path)
+        guard !paths.isEmpty else { return }
+        let output = Zipper.defaultOutputPath(for: paths)
+        let options = ZipOptions(legacyCP949: legacyCP949)
+        zipProgress = 0
+        zipError = nil
+        phase = .zipping
+        DispatchQueue.global(qos: .userInitiated).async {
+            var lastSent = 0.0
+            do {
+                let rep = try Zipper.makeZip(paths: paths, to: output, options: options) { p in
+                    guard p - lastSent >= 0.01 || p >= 1 else { return }
+                    lastSent = p
+                    DispatchQueue.main.async { self.zipProgress = p }
+                }
+                DispatchQueue.main.async { self.zipReport = rep; self.phase = .zipped }
+            } catch {
+                DispatchQueue.main.async { self.zipError = error.localizedDescription; self.phase = .zipped }
+            }
+        }
+    }
+
+    func revealZip() {
+        NSWorkspace.shared.activateFileViewerSelecting([URL(fileURLWithPath: zipReport.output)])
     }
 
     func reset() {

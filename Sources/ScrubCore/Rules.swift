@@ -132,4 +132,8 @@ public enum Rules {
     static func windowsKey(_ name: String) -> String {
         name.precomposedStringWithCanonicalMapping.lowercased()
     }
+
+    static func windowsKeyTaken(_ name: String, in used: Set<String>) -> Bool {
+        used.contains(windowsKey(name))
+    }
 }

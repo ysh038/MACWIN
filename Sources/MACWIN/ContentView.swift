@@ -16,6 +16,8 @@ struct ContentView: View {
                 case .scanning: ProgressView("검사하는 중…").frame(maxWidth: .infinity, maxHeight: .infinity)
                 case .scanned: ScannedView(model: model)
                 case .done: DoneView(model: model)
+                case .zipping: ZippingView(model: model)
+                case .zipped: ZippedView(model: model)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -31,6 +33,7 @@ struct ContentView: View {
             }
         }
         .onDrop(of: [UTType.fileURL], isTargeted: $targeted) { providers in
+            guard model.phase != .zipping else { return false }
             loadURLs(providers) { model.scan($0) }
             return true
         }
@@ -46,6 +49,8 @@ struct ContentView: View {
             Spacer()
             Menu {
                 if model.canUndo { Button("마지막 수정 되돌리기") { model.undo() } }
+                Toggle("ZIP: 옛날 윈도우 호환 (CP949)", isOn: $model.legacyCP949)
+                Divider()
                 Button("MACWIN 정보") { AppIcon.showAbout() }
                 Button("종료") { NSApp.terminate(nil) }
             } label: {
@@ -153,13 +158,23 @@ private struct ScannedView: View {
             HStack {
                 Button("처음으로") { model.reset() }
                 Spacer()
+                // 원본은 그대로 두고 고친 이름으로 ZIP만 만들기
                 Button {
-                    model.scrub()
+                    model.makeZip()
                 } label: {
-                    Label("고치기 (\(model.selected.count))", systemImage: "checkmark")
+                    Label("윈도우용 ZIP", systemImage: "doc.zipper")
                 }
-                .keyboardShortcut(.defaultAction)
-                .disabled(model.selected.isEmpty)
+                .help("원본은 그대로 두고, 윈도우에서 안 깨지는 이름으로 ZIP을 원본 옆에 만들어요.")
+                if !r.fixable.isEmpty {
+                    Button {
+                        model.scrub()
+                    } label: {
+                        Label("고치기 (\(model.selected.count))", systemImage: "checkmark")
+                    }
+                    .keyboardShortcut(.defaultAction)
+                    .disabled(model.selected.isEmpty)
+                    .help("원본 파일의 이름을 바로 고쳐요.")
+                }
             }
             .padding(12)
         }
@@ -297,7 +312,65 @@ private struct DoneView: View {
                 if model.canUndo { Button("되돌리기") { model.undo() } }
                 Spacer()
                 Button("다시 검사") { model.rescan() }
+                Button("윈도우용 ZIP") { model.makeZip() }
                 Button("완료") { model.reset() }.keyboardShortcut(.defaultAction)
+            }
+            .padding(12)
+        }
+    }
+}
+
+// MARK: - ZIP
+
+private struct ZippingView: View {
+    @ObservedObject var model: ScrubModel
+
+    var body: some View {
+        VStack(spacing: 12) {
+            ProgressView(value: model.zipProgress)
+                .frame(width: 260)
+            Text("ZIP 만드는 중… \(Int(model.zipProgress * 100))%").foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+
+private struct ZippedView: View {
+    @ObservedObject var model: ScrubModel
+
+    var body: some View {
+        let rep = model.zipReport
+        VStack(spacing: 12) {
+            Spacer()
+            if let error = model.zipError {
+                Image(systemName: "exclamationmark.triangle").font(.system(size: 44)).foregroundStyle(.orange)
+                Text("ZIP을 만들지 못했어요").font(.title2)
+                Text(error).font(.callout).foregroundStyle(.secondary).multilineTextAlignment(.center)
+                    .padding(.horizontal, 24)
+            } else {
+                Image(systemName: "doc.zipper").font(.system(size: 44)).foregroundStyle(Color.accentColor)
+                Text("윈도우용 ZIP을 만들었어요").font(.title2)
+                Text((rep.output as NSString).lastPathComponent.precomposedStringWithCanonicalMapping)
+                    .font(.callout.weight(.medium)).lineLimit(1).truncationMode(.middle)
+                    .padding(.horizontal, 24)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("파일 \(rep.fileCount)개, 폴더 \(rep.dirCount)개")
+                    if rep.renamed > 0 { Text("이름 \(rep.renamed)개를 윈도우용으로 바꿔 넣었어요") }
+                    if rep.excludedJunk > 0 { Text("맥 숨김파일 \(rep.excludedJunk)개는 뺐어요") }
+                    if !rep.skippedLinks.isEmpty { Text("바로가기(심볼릭 링크) \(rep.skippedLinks.count)개는 뺐어요") }
+                    Text(model.legacyCP949 ? "이름 방식: 옛날 윈도우 호환 (CP949)" : "이름 방식: UTF-8 (윈도우 10·11)")
+                        .foregroundStyle(.secondary)
+                    Text("원본 파일은 그대로예요.").foregroundStyle(.secondary)
+                }
+                .font(.callout)
+            }
+            Spacer()
+            HStack {
+                Button("처음으로") { model.reset() }
+                Spacer()
+                if model.zipError == nil {
+                    Button("Finder에서 보기") { model.revealZip() }.keyboardShortcut(.defaultAction)
+                }
             }
             .padding(12)
         }
