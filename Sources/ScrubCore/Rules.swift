@@ -9,6 +9,7 @@ public enum IssueKind: String, Codable, CaseIterable {
     case forbiddenChar
     case trailingDotSpace
     case reservedName
+    case zipNoUTF8Flag
     // 경고만 (자동으로 안 고침)
     case nameConflict
     case caseCollision
@@ -16,7 +17,8 @@ public enum IssueKind: String, Codable, CaseIterable {
 
     public var isFixable: Bool {
         switch self {
-        case .nfd, .invisibleChar, .controlChar, .forbiddenChar, .trailingDotSpace, .reservedName: return true
+        case .nfd, .invisibleChar, .controlChar, .forbiddenChar, .trailingDotSpace, .reservedName, .zipNoUTF8Flag:
+            return true
         case .nameConflict, .caseCollision, .longPath: return false
         }
     }
@@ -29,6 +31,7 @@ public enum IssueKind: String, Codable, CaseIterable {
         case .forbiddenChar: return "금지 문자"
         case .trailingDotSpace: return "끝 공백/점"
         case .reservedName: return "예약어"
+        case .zipNoUTF8Flag: return "인코딩 표시 없음"
         case .nameConflict: return "이름 충돌"
         case .caseCollision: return "대소문자 충돌"
         case .longPath: return "긴 경로"
@@ -43,6 +46,7 @@ public enum IssueKind: String, Codable, CaseIterable {
         case .forbiddenChar: return "윈도우에서 못 쓰는 \\ : * ? \" < > | 를 _ 로 바꿉니다."
         case .trailingDotSpace: return "윈도우는 이름 끝의 공백·마침표를 지워버려서 미리 지웁니다."
         case .reservedName: return "CON, NUL, COM1 같은 이름은 윈도우에서 못 만들어서 뒤에 _ 를 붙입니다."
+        case .zipNoUTF8Flag: return "ZIP에 UTF-8 표시가 없어서 윈도우가 이름을 CP949로 잘못 읽어 깨집니다. 표시를 넣어 고칩니다."
         case .nameConflict: return "고친 이름이 같은 폴더의 다른 파일과 겹쳐서 건너뜁니다. 직접 바꿔주세요."
         case .caseCollision: return "대소문자만 다른 이름이 있어요. 윈도우에선 하나가 덮어써집니다."
         case .longPath: return "경로가 길어서 윈도우 260자 제한에 걸릴 수 있어요."

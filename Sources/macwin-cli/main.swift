@@ -4,7 +4,7 @@ import ScrubCore
 // 테스트/터미널용: macwin-cli scan|fix <경로...>, macwin-cli undo
 let args = Array(CommandLine.arguments.dropFirst())
 guard let cmd = args.first else {
-    print("usage: macwin-cli scan|fix <paths...> | zip [--cp949] [-o out.zip] <paths...> | undo")
+    print("usage: macwin-cli scan|fix <paths...> | zip [--cp949] [-o out.zip] <paths...> | repair [--check] [--cp949] [-o out.zip] <file.zip> | undo")
     exit(1)
 }
 
@@ -42,6 +42,32 @@ case "zip":
         print("만듦 \(rep.output)")
         print("파일 \(rep.fileCount)개, 폴더 \(rep.dirCount)개, 이름 바꿈 \(rep.renamed)개, 맥 숨김파일 뺌 \(rep.excludedJunk)개")
         if !rep.skippedLinks.isEmpty { print("링크 뺌: \(rep.skippedLinks.joined(separator: ", "))") }
+    } catch {
+        print("실패: \(error.localizedDescription)")
+        exit(1)
+    }
+case "repair":
+    // macwin-cli repair [--cp949] [-o 출력.zip] <기존.zip>  (검사만: --check)
+    var rest = Array(args.dropFirst())
+    var options = ZipOptions()
+    var output: String?
+    var checkOnly = false
+    if let i = rest.firstIndex(of: "--cp949") { options.legacyCP949 = true; rest.remove(at: i) }
+    if let i = rest.firstIndex(of: "--check") { checkOnly = true; rest.remove(at: i) }
+    if let i = rest.firstIndex(of: "-o"), i + 1 < rest.count { output = rest[i + 1]; rest.removeSubrange(i...i + 1) }
+    guard let path = rest.first else { print("ZIP 경로가 필요해요"); exit(1) }
+    let ins = ZipRepair.inspect(path: path)
+    if let why = ins.unsupported { print("고칠 수 없음: \(why)"); exit(1) }
+    print("항목 \(ins.entryCount)개, 문제 \(ins.issues.count)개, 맥 숨김파일 \(ins.junkCount)개" + (ins.encrypted ? ", 암호 있음" : ""))
+    for f in ins.issues {
+        let tags = f.issues.map(\.title).joined(separator: ",")
+        print("  [\(tags)] \(f.newPath)" + (f.looksSame ? "" : "   (원래: \(f.originalPath))"))
+    }
+    if checkOnly { break }
+    do {
+        let rep = try ZipRepair.repair(path: path, to: output ?? ZipRepair.defaultOutputPath(for: path), options: options)
+        print("만듦 \(rep.output)")
+        print("파일 \(rep.fileCount)개, 폴더 \(rep.dirCount)개, 이름 바꿈 \(rep.renamed)개, 맥 숨김파일 뺌 \(rep.excludedJunk)개")
     } catch {
         print("실패: \(error.localizedDescription)")
         exit(1)

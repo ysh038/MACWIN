@@ -16,6 +16,7 @@ struct ContentView: View {
                 case .scanning: ProgressView("검사하는 중…").frame(maxWidth: .infinity, maxHeight: .infinity)
                 case .scanned: ScannedView(model: model)
                 case .done: DoneView(model: model)
+                case .zipInspected: ZipInspectView(model: model)
                 case .zipping: ZippingView(model: model)
                 case .zipped: ZippedView(model: model)
                 }
@@ -76,6 +77,7 @@ private struct IdleView: View {
             Image(systemName: "tray.and.arrow.down").font(.system(size: 40)).foregroundStyle(.secondary)
             Text("폴더나 파일을 여기에 놓으세요").font(.title3)
             Text("메뉴바 아이콘 위에 바로 놓아도 돼요").font(.callout).foregroundStyle(.secondary)
+            Text("ZIP 파일을 놓으면 ZIP 안의 이름을 검사해요").font(.callout).foregroundStyle(.secondary)
             Button("선택…") { model.choose() }
             if let notice = model.notice {
                 Text(notice).font(.callout).foregroundStyle(.secondary).multilineTextAlignment(.center)
@@ -321,6 +323,96 @@ private struct DoneView: View {
 }
 
 // MARK: - ZIP
+
+/// ZIP 파일 하나를 올렸을 때: ZIP 안의 이름 검사 결과
+private struct ZipInspectView: View {
+    @ObservedObject var model: ScrubModel
+
+    var body: some View {
+        let ins = model.zipInspection
+        VStack(spacing: 0) {
+            HStack {
+                Image(systemName: "doc.zipper").foregroundStyle(.secondary)
+                Text((ins.path as NSString).lastPathComponent.precomposedStringWithCanonicalMapping)
+                    .font(.subheadline.weight(.semibold)).lineLimit(1).truncationMode(.middle)
+                Spacer()
+                Text("항목 \(ins.entryCount)개 검사").font(.caption).foregroundStyle(.secondary)
+            }
+            .padding(.horizontal, 12).padding(.vertical, 8)
+
+            if let why = ins.unsupported {
+                Spacer()
+                Image(systemName: "exclamationmark.triangle").font(.system(size: 44)).foregroundStyle(.orange)
+                Text("이 ZIP은 고칠 수 없어요").font(.title3).padding(.top, 8)
+                Text(why).font(.callout).foregroundStyle(.secondary).multilineTextAlignment(.center).padding(.horizontal, 24)
+                Spacer()
+            } else if !ins.needsRepair {
+                Spacer()
+                Image(systemName: "checkmark.seal.fill").font(.system(size: 44)).foregroundStyle(.green)
+                Text("깨끗해요. 윈도우에서도 이름이 안 깨져요.").font(.title3).padding(.top, 8)
+                Spacer()
+            } else {
+                ScrollView {
+                    LazyVStack(alignment: .leading, spacing: 4) {
+                        if ins.issues.contains(where: { $0.issues.contains(.zipNoUTF8Flag) }) {
+                            Label("맥에서 만든 ZIP이라 윈도우에서 이름이 깨져요.", systemImage: "exclamationmark.triangle.fill")
+                                .font(.callout).foregroundStyle(.orange).padding(.vertical, 4)
+                        }
+                        if !ins.issues.isEmpty {
+                            Text("고칠 이름 \(ins.issues.count)개").font(.caption.weight(.semibold)).padding(.top, 4)
+                            ForEach(ins.issues) { e in ZipEntryRow(entry: e) }
+                        }
+                        VStack(alignment: .leading, spacing: 2) {
+                            if ins.junkCount > 0 { Text("맥 숨김파일(__MACOSX, ._ 등) \(ins.junkCount)개는 빼요.") }
+                            if ins.encrypted { Text("암호가 걸린 ZIP이에요. 이름만 고치고 암호는 그대로 둬요.") }
+                            Text("원본 ZIP은 그대로 두고, 옆에 \"(윈도우용)\" ZIP을 새로 만들어요.")
+                        }
+                        .font(.caption2).foregroundStyle(.secondary).padding(.top, 10)
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.bottom, 8)
+                }
+            }
+
+            Divider()
+            HStack {
+                Button("처음으로") { model.reset() }
+                Spacer()
+                if ins.needsRepair {
+                    Button {
+                        model.repairZip()
+                    } label: {
+                        Label("윈도우용으로 고치기", systemImage: "doc.zipper")
+                    }
+                    .keyboardShortcut(.defaultAction)
+                }
+            }
+            .padding(12)
+        }
+    }
+}
+
+private struct ZipEntryRow: View {
+    let entry: ZipEntryIssue
+
+    var body: some View {
+        let newPath = entry.isDirectory ? String(entry.newPath.dropLast()) : entry.newPath
+        let oldName = (entry.isDirectory ? String(entry.originalPath.dropLast()) : entry.originalPath)
+            .split(separator: "/").last.map(String.init) ?? entry.originalPath
+        HStack(alignment: .top, spacing: 8) {
+            Image(systemName: entry.isDirectory ? "folder" : "doc").foregroundStyle(.secondary).frame(width: 14)
+            VStack(alignment: .leading, spacing: 2) {
+                PathText(path: newPath, isDirectory: entry.isDirectory)
+                if !entry.looksSame && !(newPath.hasSuffix("/" + oldName) || newPath == oldName) {
+                    Text("원래: " + visible(oldName)).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                }
+                Chips(issues: entry.issues)
+            }
+        }
+        .padding(.vertical, 3)
+        .help(entry.issues.map(\.detail).joined(separator: "\n"))
+    }
+}
 
 private struct ZippingView: View {
     @ObservedObject var model: ScrubModel
