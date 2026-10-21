@@ -15,6 +15,7 @@
   <img src="https://img.shields.io/badge/macOS-13%2B-blue?style=flat-square&logo=apple&logoColor=white" alt="macOS 13+">
   <img src="https://img.shields.io/badge/Apple%20Silicon%20%7C%20Intel-universal-lightgrey?style=flat-square" alt="Universal binary">
   <img src="https://img.shields.io/badge/Swift-5.9-F05138?style=flat-square&logo=swift&logoColor=white" alt="Swift">
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/ysh038/MACWIN?style=flat-square" alt="MIT License"></a>
 </p>
 
 <p align="center">
@@ -250,6 +251,6 @@ scripts/capture-screenshots.sh    Regenerates docs/screenshots (needs Screen Rec
 docs/screenshots/                 README screenshots, English and Korean, light and dark
 ```
 
-## Credits
+## License
 
-- Icon: Windows icon by [Icons8](https://icons8.com) (free license; also credited in the app under `⋯` → **About MACWIN**)
+[MIT](LICENSE). The app icon is from [Icons8](https://icons8.com) under their free license, which requires a link back; it's credited here and in the app under `⋯` → **About MACWIN**.
