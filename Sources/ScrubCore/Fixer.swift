@@ -5,6 +5,12 @@ public struct RenameRecord: Codable {
     public let parent: String
     public let old: String
     public let new: String
+
+    public init(parent: String, old: String, new: String) {
+        self.parent = parent
+        self.old = old
+        self.new = new
+    }
 }
 
 public struct ApplyReport {

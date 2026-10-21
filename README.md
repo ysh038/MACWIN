@@ -1,22 +1,102 @@
-<img src="Resources/windows98-96.png" width="64" alt="MACWIN icon">
+<p align="center">
+  <img src="Resources/windows98-96.png" width="96" alt="MACWIN">
+</p>
 
-# MACWIN
+<h1 align="center">MACWIN</h1>
 
-A macOS menu bar app that checks and fixes file names **before you send files to Windows or upload them to the web** (company groupware, etc.).
+<p align="center">
+  <b>Fix Mac file names before they break on Windows.</b><br>
+  A tiny macOS menu bar app: drop a folder, see what will break, fix it in place or zip it.
+</p>
 
-Korean file names created on a Mac often show up on Windows with their syllables broken apart (`한글` → `ㅎㅏㄴㄱㅡㄹ`), can't be found by search, or fail to copy at all. Drop your files on the menu bar icon before sending them, and MACWIN finds the problematic names and fixes them.
+<p align="center">
+  <a href="https://github.com/ysh038/MACWIN/releases/latest"><img src="https://img.shields.io/github/v/release/ysh038/MACWIN?style=flat-square&label=release" alt="Latest release"></a>
+  <a href="https://github.com/ysh038/MACWIN/releases"><img src="https://img.shields.io/github/downloads/ysh038/MACWIN/total?style=flat-square" alt="Downloads"></a>
+  <img src="https://img.shields.io/badge/macOS-13%2B-blue?style=flat-square&logo=apple&logoColor=white" alt="macOS 13+">
+  <img src="https://img.shields.io/badge/Apple%20Silicon%20%7C%20Intel-universal-lightgrey?style=flat-square" alt="Universal binary">
+  <img src="https://img.shields.io/badge/Swift-5.9-F05138?style=flat-square&logo=swift&logoColor=white" alt="Swift">
+</p>
 
-There are three ways to use it:
+<p align="center">
+  <a href="https://github.com/ysh038/MACWIN/releases/latest/download/MACWIN.dmg"><b>Download .dmg</b></a> ·
+  <a href="https://github.com/ysh038/MACWIN/releases/latest/download/MACWIN.zip">Download .zip</a> ·
+  <a href="#how-it-works">How it works</a> ·
+  <a href="#installation">Install</a> ·
+  <a href="#what-it-checks">What it checks</a>
+</p>
 
-- **Fix**: rename the original files in place (can be undone).
-- **Compress to a Windows ZIP**: leave the originals alone and create a new ZIP with Windows-safe names.
-- **Fix an existing ZIP**: drop a ZIP you already made on a Mac, and MACWIN writes a `(for Windows)` copy next to it with the names inside fixed.
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/scanned-en-dark.png">
+    <img src="docs/screenshots/scanned-en-light.png" width="466" alt="MACWIN listing file names in a folder that would break on Windows">
+  </picture>
+</p>
 
-ZIPs made with the Mac's built-in compression (Finder's "Compress") don't mark their names as UTF-8, so Windows misreads them as CP949 and the names come out garbled. They also carry a `__MACOSX` folder along. Both ZIP features above avoid these problems.
+## Why
 
-- macOS 13 (Ventura) or later, on both Apple Silicon and Intel Macs
+Korean (and accented, and Japanese) file names created on a Mac are stored in a different Unicode form (NFD) than Windows expects (NFC). Send such a folder to a Windows user and the names show up with their letters pulled apart — `한글` becomes `ㅎㅏㄴㄱㅡㄹ` — search can't find them, and some files won't copy at all. Mac-made ZIPs make it worse: Finder's "Compress" doesn't mark names as UTF-8, so Windows reads them as garbage, and a `__MACOSX` folder tags along.
 
-> The app follows your Mac's system language. It shows Korean or English, whichever comes first in your preferred languages, and English if neither is listed. You can also set it per app in **System Settings → General → Language & Region → Applications**.
+MACWIN sits in your menu bar. Drop a folder (or a ZIP) on it before you send it, and it shows you exactly what would break and fixes it in one click.
+
+## How it works
+
+<table>
+  <tr>
+    <td align="center" width="33%">
+      <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/idle-en-dark.png">
+        <img src="docs/screenshots/idle-en-light.png" alt="Drop files on the MACWIN window">
+      </picture>
+    </td>
+    <td align="center" width="33%">
+      <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/scanned-en-dark.png">
+        <img src="docs/screenshots/scanned-en-light.png" alt="Review what will break and why">
+      </picture>
+    </td>
+    <td align="center" width="33%">
+      <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/done-en-dark.png">
+        <img src="docs/screenshots/done-en-light.png" alt="Fixed, with undo">
+      </picture>
+    </td>
+  </tr>
+  <tr>
+    <td align="center"><b>1. Drop</b><br>Drag folders or files onto the menu bar icon or the window.</td>
+    <td align="center"><b>2. Review</b><br>Each problem is tagged. Uncheck anything you want to leave alone.</td>
+    <td align="center"><b>3. Fix</b><br>Rename in place (undo is one click away), or make a Windows-safe ZIP instead.</td>
+  </tr>
+</table>
+
+### Already have a ZIP?
+
+Drop a ZIP you made on a Mac and MACWIN checks the names inside it without extracting. **Fix for Windows** writes a `name (for Windows).zip` next to it: names are fixed, the UTF-8 flag is set, `__MACOSX` junk is gone, and the compressed data is copied byte for byte, so it's fast and the contents never change. Password-protected ZIPs work too.
+
+<table>
+  <tr>
+    <td align="center" width="50%">
+      <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/zip-en-dark.png">
+        <img src="docs/screenshots/zip-en-light.png" alt="Checking the names inside an existing ZIP">
+      </picture>
+    </td>
+    <td align="center" width="50%">
+      <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/zipped-en-dark.png">
+        <img src="docs/screenshots/zipped-en-light.png" alt="A Windows-safe ZIP was created">
+      </picture>
+    </td>
+  </tr>
+</table>
+
+## Features
+
+- **Three ways to fix** — rename in place (with undo), compress to a new Windows-safe ZIP, or repair a ZIP you already made.
+- **Shows the original name** next to every change, with invisible characters made visible (`‹U+202F›`).
+- **Safe by default** — never overwrites, skips `.git` and app bundles, leaves `.DS_Store` and friends alone, and records every rename so you can undo it.
+- **Windows-safe ZIPs** — UTF-8-flagged names, no `__MACOSX` / `._*`, already-compressed files stored as is. A legacy CP949 mode for Windows 7 and old groupware.
+- **Follows your system language** — English or Korean, picked from your Mac's preferred languages. (Korean screenshots are in [`docs/screenshots`](docs/screenshots).)
+- **Small and native** — AppKit + SwiftUI, no dependencies, universal binary for Apple Silicon and Intel, macOS 13+.
 
 ## What it checks
 
@@ -28,19 +108,20 @@ ZIPs made with the Mac's built-in compression (Finder's "Compress") don't mark t
 | Forbidden characters | Replaces `\ : * ? " < > \|`, which Windows doesn't allow, with `_`. | Fixed |
 | Trailing space/dot | Removes spaces and dots at the end of a name, like `memo. `. | Fixed |
 | Reserved names | Appends `_` to names such as `CON`, `NUL` and `COM1`. | Fixed |
+| No UTF-8 flag (ZIP) | The ZIP doesn't mark its names as UTF-8, so Windows misreads them. The flag is added. | Fixed |
 | Name conflict | If a fixed name would clash with another file in the same folder, it's left unchanged and reported. | Warning only |
 | Case conflict | Reports names that differ only in case, like `File.txt` / `file.txt`. | Warning only |
 | Long path | Reports paths that may hit Windows' 260-character path limit. | Warning only |
 
 What it leaves alone:
 
-- Mac hidden files such as `.DS_Store`, `._*` and `__MACOSX` (only counted)
+- Mac hidden files such as `.DS_Store`, `._*` and `__MACOSX` (only counted; removed from ZIPs)
 - The inside of `.git` and `.svn` folders, and of bundles such as `.app`, Pages and Keynote files
 - File **contents** (only names are changed)
 
 ## Installation
 
-### Option 1: Download
+### Download
 
 [Releases](https://github.com/ysh038/MACWIN/releases/latest) has two formats. They contain the same app, so pick whichever you like.
 
@@ -51,7 +132,7 @@ What it leaves alone:
 
 After installing:
 
-1. Launch `MACWIN` from the Applications folder.
+1. Launch `MACWIN` from the Applications folder. It doesn't appear in the Dock; look for the Windows logo in the menu bar.
 2. On first launch you'll see a warning that Apple cannot verify the app is free of malware. This is because the app isn't signed and notarized with an Apple Developer ID. You only need to allow it once.
    1. Click **Done** in the warning dialog.
    2. Go to **System Settings → Privacy & Security**, click **Open Anyway** near the bottom, and enter your password (or use Touch ID).
@@ -62,7 +143,7 @@ After installing:
       xattr -dr com.apple.quarantine /Applications/MACWIN.app
       ```
 
-### Option 2: Build from source
+### Build from source
 
 Requires Xcode or the Command Line Tools (`xcode-select --install`).
 
@@ -72,9 +153,7 @@ cd MACWIN
 ./build.sh
 ```
 
-This creates `build/MACWIN.app`. Move it to the Applications folder and launch it.
-
-Release files (`dist/MACWIN.zip`, `dist/MACWIN.dmg`) are built with `./release.sh`.
+This creates `build/MACWIN.app`. Move it to the Applications folder and launch it. Release files (`dist/MACWIN.zip`, `dist/MACWIN.dmg`) are built with `./release.sh`.
 
 ### Launch at login
 
@@ -82,13 +161,11 @@ In **System Settings → General → Login Items**, click `+` and add `MACWIN.ap
 
 ## Usage
 
-Once running, MACWIN doesn't appear in the Dock. Instead, a classic Windows logo icon appears in the menu bar.
-
 1. **Drop the folders or files to check** — whichever is easiest:
    - Drag them from Finder onto the menu bar icon
    - Click the menu bar icon to open the window, then drag them into it
    - Use the **Choose…** button in the window
-   - Drop **a single ZIP file** to check the names inside it. See [Fixing an existing ZIP](#fixing-an-existing-zip).
+   - Drop **a single ZIP file** to check the names inside it (see [Fixing an existing ZIP](#fixing-an-existing-zip))
 2. **Review the results**
    - **To fix**: only checked items are fixed. Uncheck anything you want to leave as is. When a name will change, the original is shown after **Original:**.
    - **Check yourself**: items that aren't fixed automatically. Rename them yourself if needed.
@@ -98,6 +175,8 @@ Once running, MACWIN doesn't appear in the Dock. Instead, a classic Windows logo
    - **Windows ZIP**: leaves the originals alone and creates a new ZIP. See [Windows ZIP](#windows-zip) below.
 
 The window closes when you click outside it or press Esc. It stays open while you're dragging files in.
+
+The app follows your Mac's system language. It shows Korean or English, whichever comes first in your preferred languages, and English if neither is listed. You can also set it per app in **System Settings → General → Language & Region → Applications**.
 
 ### Windows ZIP
 
@@ -161,12 +240,14 @@ UI text is written in English in the code via `tr("...")`. Korean translations l
 ```
 Sources/
   ScrubCore/    Check/fix logic (Rules: naming rules, Scanner: folder scan, Fixer: rename and undo, Zipper: Windows ZIP, ZipRepair: fix existing ZIPs, Localization: tr())
-  MACWIN/       Menu bar app (AppKit + SwiftUI)
+  MACWIN/       Menu bar app (AppKit + SwiftUI); Demo.swift drives the app for screenshots
   macwin-cli/   Command-line tool
 build.sh        Builds build/MACWIN.app (universal)
 release.sh      Builds dist/MACWIN.zip and dist/MACWIN.dmg
 Resources/      Icon images, AppIcon.icns, ko.lproj/Localizable.strings (Korean UI text)
-scripts/make-icns.swift   Regenerates Resources/AppIcon.icns
+scripts/make-icns.swift           Regenerates Resources/AppIcon.icns
+scripts/capture-screenshots.sh    Regenerates docs/screenshots (needs Screen Recording permission)
+docs/screenshots/                 README screenshots, English and Korean, light and dark
 ```
 
 ## Credits

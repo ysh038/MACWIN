@@ -20,6 +20,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSDr
     private let gap: CGFloat = 8
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        if let demo = Demo.current { NSApp.appearance = NSAppearance(named: demo.dark ? .darkAqua : .aqua) }
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         if let button = statusItem.button {
             button.image = AppIcon.logo(size: 18)
@@ -32,6 +33,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSDr
         panel = makePanel()
         model.showPopover = { [weak self] in self?.showPanel() }
         model.hidePopover = { [weak self] in self?.hidePanel() }
+
+        if let demo = Demo.current {
+            demo.apply(to: model)
+            // 상태바 아이콘이 자리 잡은 뒤에 창을 띄워야 위치가 맞음
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [self] in
+                showPanel()
+                demo.printGeometry(panel: panel)
+            }
+        }
     }
 
     private func makePanel() -> FloatingPanel {
@@ -58,11 +68,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSDr
         mask.resizingMode = .stretch
         effect.maskImage = mask
 
+        // 캡처용 데모에서는 뒤가 비치는 재질 대신 불투명 배경을 써서 바탕화면이 섞이지 않게 함
+        let container: NSView
+        if Demo.current != nil {
+            let solid = NSView(frame: effect.frame)
+            solid.wantsLayer = true
+            solid.layer?.backgroundColor = NSColor.windowBackgroundColor.cgColor
+            solid.layer?.cornerRadius = radius
+            solid.layer?.masksToBounds = true
+            container = solid
+        } else {
+            container = effect
+        }
+
         let hosting = NSHostingView(rootView: ContentView(model: model))
-        hosting.frame = effect.bounds
+        hosting.frame = container.bounds
         hosting.autoresizingMask = [.width, .height]
-        effect.addSubview(hosting)
-        p.contentView = effect
+        container.addSubview(hosting)
+        p.contentView = container
         return p
     }
 
@@ -73,11 +96,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSDr
     private func showPanel() {
         guard let button = statusItem.button, let buttonWindow = button.window else { return }
         let buttonFrame = buttonWindow.convertToScreen(button.convert(button.bounds, to: nil))
-        let visible = (buttonWindow.screen ?? NSScreen.main)?.visibleFrame ?? .zero
+        var visible = (buttonWindow.screen ?? NSScreen.main)?.visibleFrame ?? .zero
+        var anchorMidX = buttonFrame.midX
+        var anchorBottom = buttonFrame.minY
+        if Demo.current != nil, let target = NSScreen.screens.first, let src = buttonWindow.screen, src != target {
+            // 캡처는 주 디스플레이(레티나)에서. 상태바 아이콘은 모든 디스플레이에 오른쪽 기준 같은 자리에 나타남
+            anchorMidX = target.frame.maxX - (src.frame.maxX - buttonFrame.midX)
+            anchorBottom = target.visibleFrame.maxY
+            visible = target.visibleFrame
+        }
 
-        var x = buttonFrame.midX - panelSize.width / 2
+        var x = anchorMidX - panelSize.width / 2
         x = min(max(x, visible.minX + 8), visible.maxX - panelSize.width - 8)
-        let y = min(buttonFrame.minY, visible.maxY) - gap - panelSize.height
+        let y = min(anchorBottom, visible.maxY) - gap - panelSize.height
         panel.setFrameOrigin(NSPoint(x: x, y: y))
 
         NSApp.activate(ignoringOtherApps: true)
